@@ -4,7 +4,7 @@ guide to get you started [https://guides.github.com/activities/contributing-to-o
 ## Talking with the team
 
 Before you start writing code, adding documentation, or submitting issues we suggest you hop in our slack channel
-([Get an invite](https://ranviermud.signup.team/)) and say hi.
+([Get an invite](https://join.slack.com/t/ranviermud/shared_invite/enQtMzczMDU3MDkxODc5LWVjZmUwNjBmNGFjYjZjOTM2OTcyMDMzZTJjZmNlOWZjNWJmNjVmMTg4ODFmOWQ3Yjg2Y2U5OTIyYTgyZTE2ZTA)) and say hi.
 
 ## Donating
 
@@ -30,10 +30,10 @@ existing documentation, read through some of the code, try to build something an
 the docs that you could add.
 
 Documentation is stored in the `docs/` folder in the root of the project. Our documentation is rendered with `mkdocs`
-and the Python-Markdown extensions, any markup you can use from those is free game. If you want to change the look and
-feel of the documentation styles are in `docs/_mkdocs/theme/ranvier/assets/stylesheets/application.css`
+version 0.17.x and the Python-Markdown extensions, any markup you can use from those is free game. If you want to change
+the look and feel of the documentation styles are in `docs/_mkdocs/theme/ranvier/assets/stylesheets/application.css`
 
-You can test your changes to the docs locally by installing [mkdocs](http://www.mkdocs.org/) and running `mkdocs serve`
+You can test your changes to the docs locally by installing [mkdocs](http://www.mkdocs.org/) version 0.15.0 (version is important) and running `mkdocs serve`
 from the root of the repo.
 
 ## What is and isn't part of Ranvier?

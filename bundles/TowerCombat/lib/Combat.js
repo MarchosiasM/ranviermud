@@ -1,10 +1,15 @@
 "use strict";
 
 const { Random } = require("rando-js");
-const { Damage, Logger, Broadcast: B } = require("ranvier");
+const { Logger, Broadcast: B } = require("ranvier");
 const Parser = require("../../bundle-example-lib/lib/ArgParser");
 const CombatErrors = require("./CombatErrors");
-const { roundState, combatOptions } = require('./Combat.enums')
+const { roundState, combatOptions, resultPosition } = require("./Combat.enums");
+const {
+  resolveDodgeVsDodge,
+  resolveStrikeVsDodge,
+  resolveStrikeVsStrike,
+} = require("./CombatResolutions/index");
 
 const luck = {
   CRITICAL: 2,
@@ -12,14 +17,6 @@ const luck = {
   NEUTRAL: 0,
   POOR: -1,
   CRITFAIL: -2,
-};
-
-const resultPosition = {
-  GR_ADVANTAGED: "GR_ADVANTAGED",
-  ADVANTAGED: "ADVANTAGED",
-  NEUTRAL: "NEUTRAL",
-  DISADVANTAGED: "DISADVANTAGED",
-  GR_DISADVANTAGED: "GR_DISADVANTAGED",
 };
 
 const resultsMapping = {
@@ -37,11 +34,6 @@ const resultsMapping = {
   GR_DISADVANTAGED: 1,
 };
 
-const probabilityMap = {
-  SEVENTY_FIVE: 0.75,
-  FIFTY: 0.75,
-  TWENTY_FIVE: 0.25,
-};
 /**
  * This class is an example implementation of a Diku-style real time combat system. Combatants
  * attack and then have some amount of lag applied to them based on their weapon speed and repeat.
@@ -121,8 +113,11 @@ class Combat {
       default:
         attacker.combatData.round = roundState.PREPARE;
         attacker.combatData.lag = 3000;
-        return true;
+        Logger.error("Didn't find a round state");
     }
+
+    B.sayAtExcept(attacker, "\r\n");
+    return true;
   }
 
   static markTime(attacker, target) {
@@ -160,8 +155,15 @@ class Combat {
    * @param {Character} attacker
    */
   static resolve(attacker, target) {
-    Combat.processOutcome(attacker, target);
-    return true;
+    const { attackerResult, targetResult } = Combat.compileScores(
+      attacker,
+      target
+    );
+    const attackerPosition = Combat.calculatePosition(
+      attackerResult,
+      targetResult
+    );
+    Combat.resolvePositions(attacker, target, attackerPosition);
   }
 
   static advancePhase(attacker, target) {
@@ -211,29 +213,17 @@ class Combat {
     };
   }
 
-  static compileSkillScore(combatant) {
+  static compileSkillScore() {
     return 100;
   }
 
-  static calculateLuck(combatant) {
+  static calculateLuck() {
     const pureLuck = Random.inRange(0, 40);
-    if (pureLuck > 38) return luck.CRITICAL;
-    if (pureLuck > 30) return luck.GOOD;
-    if (pureLuck > 20) return luck.NEUTRAL;
-    if (pureLuck > 5) return luck.POOR;
+    if (pureLuck > 39) return luck.CRITICAL;
+    if (pureLuck > 38) return luck.GOOD;
+    if (pureLuck > 5) return luck.NEUTRAL;
+    if (pureLuck > 3) return luck.POOR;
     return luck.CRITFAIL;
-  }
-
-  static processOutcome(attacker, target) {
-    const { attackerResult, targetResult } = Combat.compileScores(
-      attacker,
-      target
-    );
-    const attackerPosition = Combat.calculatePosition(
-      attackerResult,
-      targetResult
-    );
-    Combat.resolvePositions(attacker, target, attackerPosition);
   }
 
   static calculatePosition(attackerRes, targetRes) {
@@ -242,10 +232,10 @@ class Combat {
     const delta = attackerSkillRoll - targetSkillRoll;
     let result;
     result = resultPosition.GR_DISADVANTAGED;
-    if (delta > -66) result = resultPosition.DISADVANTAGED;
-    if (delta > -33) result = resultPosition.NEUTRAL;
-    if (delta > 33) result = resultPosition.ADVANTAGED;
-    if (delta > 66) result = resultPosition.GR_ADVANTAGED;
+    if (delta > -90) result = resultPosition.DISADVANTAGED;
+    if (delta > -66) result = resultPosition.NEUTRAL;
+    if (delta > 66) result = resultPosition.ADVANTAGED;
+    if (delta > 90) result = resultPosition.GR_ADVANTAGED;
     const luckMod = Combat.calculateLuckMod(attackerRes.luck, targetRes.luck);
     const modifiedResult = resultsMapping[resultsMapping[result] + luckMod];
     return modifiedResult;
@@ -256,75 +246,40 @@ class Combat {
   }
 
   static resolvePositions(attacker, target, attackerPosition) {
-    switch (attackerPosition) {
-      case resultPosition.NEUTRAL:
-        Combat.resolveNeutralStrike(attacker, target);
+    const { DODGE, STRIKE } = combatOptions;
+    const attackerDecision = attacker.combatData.decision;
+    const targetDecision = target.combatData.decision;
+    switch (attackerDecision) {
+      case STRIKE:
+        switch (targetDecision) {
+          case STRIKE:
+            resolveStrikeVsStrike(attacker, target, attackerPosition);
+            break;
+          case DODGE:
+            resolveStrikeVsDodge(attacker, target, attackerPosition);
+            break;
+        }
         break;
-      case resultPosition.ADVANTAGED:
-        Combat.resolveAdvStrike(attacker, target);
+      case DODGE:
+        switch (targetDecision) {
+          case STRIKE:
+            resolveStrikeVsDodge(
+              target,
+              attacker,
+              Combat.findInverseCombatPosition(attackerPosition)
+            );
+            break;
+          case DODGE:
+            resolveDodgeVsDodge(attacker, target, attackerPosition);
+            break;
+        }
         break;
-      case resultPosition.GR_ADVANTAGED:
-        Combat.resolveGrAdvStrike(attacker, target);
-        break;
-      case resultPosition.DISADVANTAGED:
-        Combat.resolveAdvStrike(target, attacker);
-        break;
-      case resultPosition.GR_DISADVANTAGED:
-        Combat.resolveGrAdvStrike(target, attacker);
-        break;
-      default:
-        return null;
     }
   }
 
-  static resolveNeutralStrike(attacker, target) {
-    // this has three branches
-    B.sayAt(attacker, "Neutral strike");
-    B.sayAt(target, "Neutral strike");
-    B.sayAt(attacker, "You lash out");
-    const diceRoll = Random.inRange(0, 3);
-    // accidental parry
-    if (diceRoll === 1) {
-      B.sayAt(
-        attacker,
-        `*CLANG!* Your hands sting with the vibration of your weapon as you and ${target.name} deflect each others' blows.`
-      );
-      B.sayAt(
-        target,
-        `*CLANG!* Your hands sting with the vibration of your weapon as you and ${attacker.name} deflect each others' blows.`
-      );
-      return;
-    }
-    // accidental deflection, reduced damage
-    if (diceRoll == 2) {
-      B.sayAt(
-        attacker,
-        `Your attack collides with ${target.name}s, deflecting the shot just so!`
-      );
-      B.sayAt(
-        target,
-        `Your attack collides with ${attacker.name}s, deflecting the shot just so!`
-      );
-      Combat.makeAttack(attacker, target, probabilityMap.SEVENTY_FIVE);
-      Combat.makeAttack(target, attacker, probabilityMap.SEVENTY_FIVE);
-      return;
-    }
-    // full hits
-    Combat.makeAttack(target, attacker);
-    Combat.makeAttack(attacker, target);
-  }
-
-  static resolveAdvStrike(attacker, target) {
-    B.sayAt(attacker, "You make an advantaged hit");
-    B.sayAt(target, "You receive an advantaged hit");
-    Combat.makeAttack(attacker, target);
-    Combat.makeAttack(target, attacker, probabilityMap.SEVENTY_FIVE);
-  }
-
-  static resolveGrAdvStrike(attacker, target) {
-    B.sayAt(attacker, "You make a greatly advantaged hit");
-    B.sayAt(target, "You receive a greatly advantaged hit");
-    Combat.makeAttack(attacker, target);
+  static findInverseCombatPosition(position) {
+    if (position === resultPosition.NEUTRL) return position;
+    return resultsMapping[6 - resultsMapping[position]];
   }
 
   /**
@@ -347,35 +302,6 @@ class Combat {
     }
 
     return null;
-  }
-
-  /**
-   * Actually apply some damage from an attacker to a target
-   * @param {Character} attacker
-   * @param {Character} target
-   */
-  static makeAttack(attacker, target, mod) {
-    let amount = this.calculateWeaponDamage(attacker);
-    let critical = false;
-    if (mod) {
-      amount = Math.ceil(amount * mod);
-    }
-    if (attacker.hasAttribute("critical")) {
-      const critChance = Math.max(attacker.getMaxAttribute("critical") || 0, 0);
-      critical = Random.probability(critChance);
-      if (critical) {
-        amount = Math.ceil(amount * 1.5);
-      }
-    }
-
-    const weapon = attacker.equipment.get("wield");
-    const damage = new Damage("health", amount, attacker, weapon || attacker, {
-      critical,
-    });
-    damage.commit(target);
-
-    // currently lag is really simple, the character's weapon speed = lag
-    // attacker.combatData.lag = this.getWeaponSpeed(attacker) * 1000;
   }
 
   /**
@@ -470,73 +396,7 @@ class Combat {
 
     return target;
   }
-
-  /**
-   * Generate an amount of weapon damage
-   * @param {Character} attacker
-   * @param {boolean} average Whether to find the average or a random inRange(0, 3);between min/max
-   * @return {number}
-   */
-  static calculateWeaponDamage(attacker, average = false) {
-    let weaponDamage = this.getWeaponDamage(attacker);
-    let amount = 0;
-    if (average) {
-      amount = (weaponDamage.min + weaponDamage.max) / 2;
-    } else {
-      amount = Random.inRange(weaponDamage.min, weaponDamage.max);
-    }
-
-    return this.normalizeWeaponDamage(attacker, amount);
-  }
-
-  /**
-   * Get the damage of the weapon the character is wielding
-   * @param {Character} attacker
-   * @return {{max: number, min: number}}
-   */
-  static getWeaponDamage(attacker) {
-    const weapon = attacker.equipment.get("wield");
-    let min = 0,
-      max = 0;
-    if (weapon) {
-      min = weapon.metadata.minDamage;
-      max = weapon.metadata.maxDamage;
-    }
-
-    return {
-      max,
-      min,
-    };
-  }
-
-  /**
-   * Get the speed of the currently equipped weapon
-   * @param {Character} attacker
-   * @return {number}
-   */
-  static getWeaponSpeed(attacker) {
-    let speed = 2.0;
-    const weapon = attacker.equipment.get("wield");
-    if (!attacker.isNpc && weapon) {
-      speed = weapon.metadata.speed;
-    }
-
-    return speed;
-  }
-
-  /**
-   * Get a damage amount adjusted by attack power/weapon speed
-   * @param {Character} attacker
-   * @param {number} amount
-   * @return {number}
-   */
-  static normalizeWeaponDamage(attacker, amount) {
-    let speed = this.getWeaponSpeed(attacker);
-    amount += attacker.hasAttribute("strength")
-      ? attacker.getAttribute("strength")
-      : attacker.level;
-    return Math.round((amount / 3.5) * speed);
-  }
 }
 
 module.exports = Combat;
+// console.log(module.exports);

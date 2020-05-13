@@ -21,7 +21,7 @@ module.exports = {
       ) {
         Broadcast.sayAt(player, "You change your mind...");
       }
-      player.combatData.decision = combatOptions.STRIKE;
+      player.combatData.decision = combatOptions.DODGE;
       Broadcast.sayAt(player, "You prepare to dodge!");
     }
   },

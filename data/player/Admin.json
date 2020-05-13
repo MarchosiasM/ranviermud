@@ -17,7 +17,7 @@
       "base": 11
     },
     "health": {
-      "delta": -46,
+      "delta": -79,
       "base": 154
     },
     "armor": {
@@ -51,13 +51,13 @@
         "type": "regen",
         "unique": true
       },
-      "elapsed": 70869757,
+      "elapsed": 70914824,
       "id": "regen",
       "remaining": null,
       "state": {
         "magnitude": 15,
-        "lastTick": 624,
-        "ticks": 680
+        "lastTick": 1589327162696,
+        "ticks": 1104
       }
     },
     {
@@ -74,7 +74,7 @@
         "type": "equip.wield",
         "unique": true
       },
-      "elapsed": 70861592,
+      "elapsed": 70906659,
       "id": "equip",
       "remaining": null,
       "state": {
@@ -98,7 +98,7 @@
         "type": "equip.chest",
         "unique": true
       },
-      "elapsed": 70860327,
+      "elapsed": 70905394,
       "id": "equip",
       "remaining": null,
       "state": {
@@ -109,7 +109,7 @@
       }
     }
   ],
-  "experience": 537,
+  "experience": 592,
   "inventory": {
     "items": [
       [

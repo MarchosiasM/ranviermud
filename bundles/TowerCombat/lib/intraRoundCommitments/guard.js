@@ -20,25 +20,27 @@ class Guard extends IntraCommand {
   resolve(incomingAction) {
     const lightMitigationFactor = 0.9;
     const heavyMitigationFactor = 0.9;
-    switch (incomingAction) {
-      case commandTypes.LIGHT:
-        incomingAction.mitigate(lightMitigationFactor);
-        this.user.emit("guardLightMitigate");
-        break;
-      case commandTypes.HEAVY:
-        incomingAction.mitigate(heavyMitigationFactor, this.config.type);
-        this.user.emit("guardHeavyMitigate");
-        break;
+    if (incomingAction && incomingAction.config) {
+      switch (incomingAction.config.type) {
+        case commandTypes.LIGHT:
+          // incomingAction.mitigate(lightMitigationFactor, this.config.type);
+          this.user.emit("guardLightMitigate");
+          break;
+        case commandTypes.HEAVY:
+          // incomingAction.mitigate(heavyMitigationFactor, this.config.type);
+          this.user.emit("guardHeavyMitigate");
+          break;
+      }
     }
     this.elapsedRounds++;
   }
 
-  switch(nextAction) {
-    if (this.elapsedRounds > 1 && nextAction.isInstanceOf(commandTypes.DODGE)) {
-      nextAction.gainAdvantage();
+  switch(type, target) {
+    if (this.elapsedRounds >= 1 && type === commandTypes.DODGE) {
+      // TODO: Put advantage on player if switching to dodge!
       this.user.emit("guardDodgeAdvantage");
     }
-    this.user.combatData.decision = nextAction;
+    this.user.emit("commitSwitch", type, target);
   }
 
   get config() {

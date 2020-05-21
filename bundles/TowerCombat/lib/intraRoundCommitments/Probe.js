@@ -2,14 +2,21 @@
 
 const IntraCommand = require("./IntraCommand");
 const { probe } = require("./configuration");
-const { commandTypes } = require("./commands.enum");
-const Random = require("rando-js");
+const { Random } = require("rando-js");
+
+const bonusFollowUps = {
+  LIGHT: "LIGHT",
+  HEAVY: "HEAVY",
+  PARRY: "PARRY",
+};
 
 class Probe extends IntraCommand {
   constructor(user, target) {
     super(user, target);
     this.user = user;
     this.target = target;
+    this.elapsedRounds = 0;
+    user.emit("newProbe", target);
   }
 
   isInstanceOf(string) {
@@ -17,21 +24,22 @@ class Probe extends IntraCommand {
   }
 
   resolve(incomingAction) {
-    this.elapsedRounds++;
-    if (this.elapsedRounds > 1) {
+    if (this.elapsedRounds >= 1) {
       this.rollAdvantageChance();
     }
+    this.elapsedRounds++;
   }
 
-  switch(nextAction) {
-    if (this.elapsedRounds > 1 && nextAction.isInstanceOf(commandTypes.DODGE)) {
-      nextAction.gainAdvantage();
+  switch(type, target) {
+    if (this.elapsedRounds > 1 && bonusFollowUps[type]) {
+      type.gainAdvantage();
     }
+    this.user.emit("commitSwitch", type, target);
   }
 
   rollAdvantageChance() {
     if (Random.inRange(0, 10) === 10) {
-      this.user.emit("probeGainAdvantage", this.target);
+      this.user.emit("probeGainAdvantage");
     }
   }
 

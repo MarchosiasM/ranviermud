@@ -6,12 +6,12 @@ const perceptionTypes = {
 };
 
 const commandTypes = {
-  DODGE: "DODGE",
-  GUARD: "GUARD",
-  PROBE: "PROBE",
-  LIGHT: "LIGHT",
-  HEAVY: "HEAVY",
-  PARRY: "PARRY",
+  DODGE: "dodge",
+  GUARD: "guard",
+  PROBE: "probe",
+  LIGHT: "light strike",
+  HEAVY: "heavy strike",
+  PARRY: "parry",
 };
 
 module.exports = {

@@ -35,7 +35,10 @@ describe("light command", () => {
   it("emits outOfCombatErr if not in combat", () => {
     expect(character.emit).not.toHaveBeenCalled();
     expect(strCommand()(null, character)).toBeUndefined();
-    expect(character.emit).toHaveBeenCalledWith("outOfCombatErr", "light");
+    expect(character.emit).toHaveBeenCalledWith(
+      "outOfCombatErr",
+      "light strike"
+    );
   });
 
   it("emits alreadyErr if command is already selected", () => {
@@ -43,7 +46,7 @@ describe("light command", () => {
     character.isInCombat = () => true;
     expect(character.emit).not.toHaveBeenCalled();
     strCommand()(null, character);
-    expect(character.emit).toHaveBeenCalledWith("alreadyErr", "light");
+    expect(character.emit).toHaveBeenCalledWith("alreadyErr", "light strike");
   });
 
   it("emits commandSwitch if another command is selected", () => {
@@ -58,8 +61,15 @@ describe("light command", () => {
     expect(character.emit).not.toHaveBeenCalled();
     strCommand()(target, character);
     expect(character.emit).toHaveBeenCalledTimes(2);
-    expect(character.emit).toHaveBeenCalledWith("msgPrepareCmd", "light");
-    expect(character.emit).toHaveBeenCalledWith("prepareCmd", "light", target);
+    expect(character.emit).toHaveBeenCalledWith(
+      "msgPrepareCmd",
+      "light strike"
+    );
+    expect(character.emit).toHaveBeenCalledWith(
+      "attemptSwitch",
+      "light strike",
+      target
+    );
   });
 
   it("will auto fill with tuple target when no target is defined", () => {
@@ -69,7 +79,14 @@ describe("light command", () => {
     expect(character.emit).not.toHaveBeenCalled();
     strCommand()(null, character);
     expect(character.emit).toHaveBeenCalledTimes(2);
-    expect(character.emit).toHaveBeenCalledWith("msgPrepareCmd", "light");
-    expect(character.emit).toHaveBeenCalledWith("prepareCmd", "light", target);
+    expect(character.emit).toHaveBeenCalledWith(
+      "msgPrepareCmd",
+      "light strike"
+    );
+    expect(character.emit).toHaveBeenCalledWith(
+      "attemptSwitch",
+      "light strike",
+      target
+    );
   });
 });

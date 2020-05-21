@@ -4,7 +4,9 @@ const { Random } = require("rando-js");
 const { Damage, Logger, Broadcast: B } = require("ranvier");
 const Parser = require("../../bundle-example-lib/lib/ArgParser");
 const CombatErrors = require("./CombatErrors");
-const { roundState, combatOptions } = require('./Combat.enums')
+const { combatOptions } = require("./Combat.enums");
+const Engagement = require("./Engagement");
+const Perception = require("./Perception");
 
 const luck = {
   CRITICAL: 2,
@@ -53,83 +55,39 @@ class Combat {
    * @param {Character} attacker
    * @return {boolean}  true if combat actions were performed this round
    */
-  static updateRound(state, attacker) {
-    if (attacker.combatData.killed) {
+  static updateRound(state, primary) {
+    if (primary.combatData.killed) {
       // entity was removed from the game but update event was still in flight, ignore it
       return false;
     }
 
-    if (!attacker.isInCombat()) {
-      if (!attacker.isNpc) {
-        attacker.removePrompt("combat");
+    if (!primary.isInCombat()) {
+      if (!primary.isNpc) {
+        primary.removePrompt("combat");
       }
       return false;
     }
 
-    let lastRoundStarted = attacker.combatData.roundStarted;
-    attacker.combatData.roundStarted = Date.now();
+    const engagement = Engagement.getEngagement(primary);
 
-    // cancel if the attacker's combat lag hasn't expired yet
-    if (attacker.combatData.lag > 0) {
-      const elapsed = Date.now() - lastRoundStarted;
-      attacker.combatData.lag -= elapsed;
+    // cancel if the primary's combat lag hasn't expired yet
+    if (!engagement.lagIsComplete) {
+      engagement.reduceLag();
       return false;
     }
 
-    // currently just grabs the first combatant from their list but could easily be modified to
-    // implement a threat table and grab the attacker with the highest threat
-    let target = null;
-    try {
-      target = Combat.chooseCombatant(attacker);
-    } catch (e) {
-      attacker.removeFromCombat();
-      attacker.combatData = {};
-      throw e;
-    }
-
-    if (target.combatData.killed) {
-      // entity was removed from the game but update event was still in flight, ignore it
-      return false;
-    }
-
-    // no targets left, remove attacker from combat
-    if (!target) {
-      attacker.removeFromCombat();
-      // reset combat data to remove any lag
-      attacker.combatData = {};
-      return false;
-    }
-
-    if (target.combatData.round !== attacker.combatData.round) {
-      target.combatData.round = roundState.PREPARE;
-      attacker.combatData.round = roundState.PREPARE;
-    }
-
-    Combat.markTime(attacker, target);
-    Combat.advancePhase(attacker, target);
-
-    switch (attacker.combatData.round) {
-      case roundState.PREPARE:
-        Combat.prepare(attacker, target);
-        break;
-      case roundState.REACT:
-        Combat.react(attacker, target);
-        break;
-      case roundState.RESOLUTION:
-        Combat.resolve(attacker, target);
-        break;
-      default:
-        attacker.combatData.round = roundState.PREPARE;
-        attacker.combatData.lag = 3000;
-        return true;
-    }
+    engagement.applyDefaults(state);
+    Combat.resolveRound(engagement);
+    Perception.perceptionCheck(engagement);
+    Combat.markTime(engagement);
+    engagement.completionCheck();
   }
 
-  static markTime(attacker, target) {
-    attacker.combatData.roundStarted = Date.now();
-    target.combatData.roundStarted = Date.now();
-    attacker.combatData.lag = 3000;
-    target.combatData.lag = 3000;
+  static resolveRound(engagement) {}
+
+  static markTime(engagement) {
+    engagement.roundStarted = Date.now();
+    engagement.lag = 3000;
   }
 
   /**
@@ -141,49 +99,6 @@ class Combat {
     B.sayAt(target, "Consider your options");
 
     return true;
-  }
-
-  /**
-   * Find a target for a given attacker
-   * @param {Character} attacker
-   */
-  static react(attacker, target) {
-    Combat.defaultActionSelection(attacker);
-    Combat.defaultActionSelection(target);
-    B.sayAt(attacker, "You study your opponent carefully");
-    B.sayAt(target, "You study your opponent carefully");
-    return true;
-  }
-
-  /**
-   * Find a target for a given attacker
-   * @param {Character} attacker
-   */
-  static resolve(attacker, target) {
-    Combat.processOutcome(attacker, target);
-    return true;
-  }
-
-  static advancePhase(attacker, target) {
-    switch (attacker.combatData.round) {
-      case roundState.PREPARE:
-        attacker.combatData.round = roundState.REACT;
-        target.combatData.round = roundState.REACT;
-        break;
-      case roundState.REACT:
-        attacker.combatData.round = roundState.RESOLUTION;
-        target.combatData.round = roundState.RESOLUTION;
-        break;
-      case roundState.RESOLUTION:
-        attacker.combatData.round = roundState.PREPARE;
-        target.combatData.round = roundState.PREPARE;
-        Combat.clearDecisions(attacker, target);
-        break;
-      default:
-        attacker.combatData.round = roundState.PREPARE;
-        target.combatData.round = roundState.PREPARE;
-        Combat.clearDecisions(attacker, target);
-    }
   }
 
   static defaultActionSelection(combatant) {
@@ -328,28 +243,6 @@ class Combat {
   }
 
   /**
-   * Find a target for a given attacker
-   * @param {Character} attacker
-   * @return {Character|null}
-   */
-  static chooseCombatant(attacker) {
-    if (!attacker.combatants.size) {
-      return null;
-    }
-
-    for (const target of attacker.combatants) {
-      if (!target.hasAttribute("health")) {
-        throw new CombatErrors.CombatInvalidTargetError();
-      }
-      if (target.getAttribute("health") > 0) {
-        return target;
-      }
-    }
-
-    return null;
-  }
-
-  /**
    * Actually apply some damage from an attacker to a target
    * @param {Character} attacker
    * @param {Character} target
@@ -419,56 +312,6 @@ class Combat {
     if (entity.addEffect(regenEffect)) {
       regenEffect.activate();
     }
-  }
-
-  /**
-   * @param {string} args
-   * @param {Player} player
-   * @return {Entity|null} Found entity... or not.
-   */
-  static findCombatant(attacker, search) {
-    if (!search.length) {
-      return null;
-    }
-
-    let possibleTargets = [...attacker.room.npcs];
-    if (attacker.getMeta("pvp")) {
-      possibleTargets = [...possibleTargets, ...attacker.room.players];
-    }
-
-    const target = Parser.parseDot(search, possibleTargets);
-
-    if (!target) {
-      return null;
-    }
-
-    if (target === attacker) {
-      throw new CombatErrors.CombatSelfError(
-        "You smack yourself in the face. Ouch!"
-      );
-    }
-
-    if (!target.hasBehavior("combat")) {
-      throw new CombatErrors.CombatPacifistError(
-        `${target.name} is a pacifist and will not fight you.`,
-        target
-      );
-    }
-
-    if (!target.hasAttribute("health")) {
-      throw new CombatErrors.CombatInvalidTargetError(
-        "You can't attack that target"
-      );
-    }
-
-    if (!target.isNpc && !target.getMeta("pvp")) {
-      throw new CombatErrors.CombatNonPvpError(
-        `${target.name} has not opted into PvP.`,
-        target
-      );
-    }
-
-    return target;
   }
 
   /**

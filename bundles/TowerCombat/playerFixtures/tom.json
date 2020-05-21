@@ -1,43 +1,45 @@
 {
   "attributes": {
+    "health": {
+      "delta": 0,
+      "base": 100
+    },
     "strength": {
       "delta": 0,
-      "base": 17
+      "base": 20
     },
     "agility": {
       "delta": 0,
-      "base": 10
+      "base": 20
     },
     "intellect": {
       "delta": 0,
-      "base": 8
+      "base": 20
     },
     "stamina": {
       "delta": 0,
-      "base": 11
-    },
-    "health": {
-      "delta": -46,
-      "base": 154
+      "base": 20
     },
     "armor": {
       "delta": 0,
       "base": 0
     },
-    "energy": {
-      "delta": 0,
-      "base": 100
-    },
     "critical": {
       "delta": 0,
       "base": 0
+    },
+    "mana": {
+      "delta": 0,
+      "base": 100
     }
   },
-  "level": 3,
-  "name": "Admin",
+  "combatData": {
+    
+  },
+  "level": 2,
+  "name": "Tom",
   "room": "limbo:training1",
-  "effects": [
-    {
+  "effects": [{
       "config": {
         "autoActivate": true,
         "description": "You are regenerating over time.",
@@ -51,37 +53,13 @@
         "type": "regen",
         "unique": true
       },
-      "elapsed": 70870156,
+      "elapsed": 1259001,
       "id": "regen",
       "remaining": null,
       "state": {
         "magnitude": 15,
-        "lastTick": 1021,
-        "ticks": 680
-      }
-    },
-    {
-      "config": {
-        "autoActivate": true,
-        "description": "",
-        "duration": "inf",
-        "hidden": true,
-        "maxStacks": 0,
-        "name": "Equip: wield",
-        "persists": true,
-        "refreshes": false,
-        "tickInterval": false,
-        "type": "equip.wield",
-        "unique": true
-      },
-      "elapsed": 70861979,
-      "id": "equip",
-      "remaining": null,
-      "state": {
-        "slot": "wield",
-        "stats": {
-          "critical": 1
-        }
+        "lastTick": 251,
+        "ticks": 420
       }
     },
     {
@@ -98,7 +76,7 @@
         "type": "equip.chest",
         "unique": true
       },
-      "elapsed": 70860714,
+      "elapsed": 43935,
       "id": "equip",
       "remaining": null,
       "state": {
@@ -107,13 +85,37 @@
           "armor": 20
         }
       }
+    },
+    {
+      "config": {
+        "autoActivate": true,
+        "description": "",
+        "duration": "inf",
+        "hidden": true,
+        "maxStacks": 0,
+        "name": "Equip: wield",
+        "persists": true,
+        "refreshes": false,
+        "tickInterval": false,
+        "type": "equip.wield",
+        "unique": true
+      },
+      "elapsed": 42551,
+      "id": "equip",
+      "remaining": null,
+      "state": {
+        "slot": "wield",
+        "stats": {
+          "critical": 1
+        }
+      }
     }
   ],
-  "experience": 537,
+  "experience": 290,
   "inventory": {
     "items": [
       [
-        "add72461-a5a5-46e7-a532-fe0ec7e0ccc4",
+        "a9c34648-1a6e-4aba-b613-acb0b93537f7",
         {
           "entityReference": "limbo:potionhealth1",
           "inventory": null,
@@ -143,7 +145,7 @@
         }
       ],
       [
-        "15ab8645-811b-44c7-8c10-f39fa4eb9610",
+        "faca92b5-9e3e-4ffd-ac25-7b314ea89248",
         {
           "entityReference": "limbo:potionstrength1",
           "inventory": null,
@@ -179,34 +181,67 @@
     "max": 16
   },
   "metadata": {
-    "class": "warrior",
+    "class": "mage",
     "resources": {
-      "plant_material": 10,
-      "rose_petal": 5
+      "plant_material": 2,
+      "rose_petal": 2
     }
   },
-  "prompt": "[ %health.current%/%health.max% <b>hp</b> %energy.current%/%energy.max% <b>energy</b> ]",
+  "prompt": "[ %health.current%/%health.max% <b>hp</b> %mana.current%/%mana.max% <b>mana</b> ]",
   "quests": {
     "completed": [
       [
         "limbo:journeybegins",
         {
-          "started": "2020-05-08T20:48:25.127Z",
-          "completedAt": "2020-05-08T20:48:34.609Z"
+          "completedAt": "2020-05-08T20:47:34.287Z"
+        }
+      ],
+      [
+        "limbo:onecheeseplease",
+        {
+          "started": "2020-05-08T20:47:49.009Z",
+          "completedAt": "2020-05-08T20:47:52.578Z"
         }
       ],
       [
         "limbo:selfdefense101",
         {
-          "started": "2020-05-08T21:01:51.680Z",
-          "completedAt": "2020-05-08T21:02:08.483Z"
+          "started": "2020-05-08T20:47:53.398Z",
+          "completedAt": "2020-05-08T20:48:04.388Z"
         }
       ]
     ],
     "active": []
   },
-  "role": 2,
+  "role": 0,
   "equipment": {
+    "chest": {
+      "entityReference": "limbo:leathervest",
+      "inventory": null,
+      "metadata": {
+        "quality": "common",
+        "slot": "chest",
+        "level": 1,
+        "itemLevel": 1,
+        "stats": {
+          "armor": 20
+        },
+        "sellable": {
+          "value": 30,
+          "currency": "gold"
+        }
+      },
+      "description": "A plain leather vest. Better than nothing.",
+      "keywords": [
+        "leather",
+        "vest"
+      ],
+      "name": "Leather Vest",
+      "roomDesc": "Leather Vest",
+      "closed": false,
+      "locked": false,
+      "behaviors": {}
+    },
     "wield": {
       "entityReference": "limbo:rustysword",
       "inventory": null,
@@ -231,33 +266,6 @@
       ],
       "name": "Rusty Sword",
       "roomDesc": "Rusted Sword",
-      "closed": false,
-      "locked": false,
-      "behaviors": {}
-    },
-    "chest": {
-      "entityReference": "limbo:leathervest",
-      "inventory": null,
-      "metadata": {
-        "quality": "common",
-        "slot": "chest",
-        "level": 1,
-        "itemLevel": 1,
-        "stats": {
-          "armor": 20
-        },
-        "sellable": {
-          "value": 30,
-          "currency": "gold"
-        }
-      },
-      "description": "A plain leather vest. Better than nothing.",
-      "keywords": [
-        "leather",
-        "vest"
-      ],
-      "name": "Leather Vest",
-      "roomDesc": "Leather Vest",
       "closed": false,
       "locked": false,
       "behaviors": {}

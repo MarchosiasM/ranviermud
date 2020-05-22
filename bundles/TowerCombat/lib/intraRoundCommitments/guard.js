@@ -27,6 +27,7 @@ class Guard extends IntraCommand {
           this.user.emit("guardLightMitigate");
           break;
         case commandTypes.HEAVY:
+          // TODO: Heavy and Light need mitigation methods to hook into here
           // incomingAction.mitigate(heavyMitigationFactor, this.config.type);
           this.user.emit("guardHeavyMitigate");
           break;

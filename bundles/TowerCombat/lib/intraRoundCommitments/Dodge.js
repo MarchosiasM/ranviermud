@@ -4,8 +4,8 @@ const IntraCommand = require("./IntraCommand");
 const { dodge } = require("./configuration");
 
 const dodgeableActions = {
-  LIGHT: "LIGHT",
-  HEAVY: "HEAVY",
+  LIGHT: "light strike",
+  HEAVY: "heavy strike",
 };
 
 class Dodge extends IntraCommand {
@@ -23,25 +23,26 @@ class Dodge extends IntraCommand {
   }
 
   resolve(incomingAction) {
-    if (this.elapsedRounds === 1) {
-      this.user.emit("dodgeInvulnBegin");
-      this.dodging = true;
-    }
-    if (this.dodging) {
+    if (this.dodging && incomingAction) {
       if (incomingAction.config.type === dodgeableActions.LIGHT) {
-        this.user.emit("lightDodge", this.incomingAction.user);
-        incomingAction.perfectlyDodged();
+        this.user.emit("lightDodge", incomingAction.user);
+        // incomingAction.perfectlyDodged();
+        // TODO: Implement perfectlyDodged and perfectlyParried methods in attack classes
       }
-      if (incomingAction.config.type === dodgeableActions.LIGHT) {
-        this.user.emit("lightDodge", this.incomingAction.user);
-        incomingAction.perfectlyDodged();
+      if (incomingAction.config.type === dodgeableActions.HEAVY) {
+        this.user.emit("heavyDodge", incomingAction.user);
+        // incomingAction.perfectlyDodged();
       }
     }
     this.elapsedRounds++;
+    if (this.elapsedRounds > 1 && !this.dodge) {
+      this.user.emit("dodgeInvulnBegin");
+      this.dodging = true;
+    }
   }
 
   switch(type, target) {
-    if (this.elapsedRounds < this.config.castTime - 1) {
+    if (this.elapsedRounds < this.config.castTime) {
       this.user.emit("dodgeCommitMessage", type);
       return;
     }

@@ -27,7 +27,7 @@ module.exports = {
     perceptThreshold: 8,
   },
   parry: {
-    castTime: 3,
+    castTime: 2,
     range: 5,
     interruptable: null,
     type: commandTypes.PARRY,
@@ -35,6 +35,11 @@ module.exports = {
     perceiveAs: perceptionTypes.DEFENSE,
     perceptMod: 0.8,
     perceptThreshold: 5,
+    parryRoundMap: {
+      1: "partialParry",
+      2: "perfectParry",
+      3: "partialParry",
+    },
   },
   probe: {
     castTime: 0,

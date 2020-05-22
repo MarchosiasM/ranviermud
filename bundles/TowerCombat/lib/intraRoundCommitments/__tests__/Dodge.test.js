@@ -46,10 +46,10 @@ describe("Dodge", () => {
       }
     );
     it("allows switch after 4 rounds elapsed", () => {
-      dodgeInstance.resolve(null);
-      dodgeInstance.resolve(null);
-      dodgeInstance.resolve(null);
-      dodgeInstance.resolve(null);
+      dodgeInstance.resolve(null); // 0
+      dodgeInstance.resolve(null); // 1
+      dodgeInstance.resolve(null); // 2
+      dodgeInstance.resolve(null); // 3
       dodgeInstance.switch("light strike", bob);
       expect(tomas.emit).toHaveBeenCalledWith(
         "commitSwitch",

@@ -14,7 +14,13 @@ const commandTypes = {
   PARRY: "parry",
 };
 
+const evadableTypes = {
+  [commandTypes.LIGHT]: commandTypes.LIGHT,
+  [commandTypes.HEAVY]: commandTypes.HEAVY,
+};
+
 module.exports = {
   perceptionTypes,
   commandTypes,
+  evadableTypes,
 };

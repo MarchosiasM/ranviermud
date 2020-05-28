@@ -2,7 +2,7 @@
 
 const IntraCommand = require("./IntraCommand");
 const { parry } = require("./configuration");
-const { evadableTypes } = require("./commands.enum");
+const { damageTypes } = require("./commands.enum");
 const _ = require("lodash");
 
 class Parry extends IntraCommand {
@@ -12,27 +12,45 @@ class Parry extends IntraCommand {
     this.target = target;
     this.elapsedRounds = 0;
     this.parrying = false;
+    this.type = parry.type;
     this.user.emit("newParry", target);
   }
 
-  isInstanceOf(string) {
-    return string.match(new RegExp(parry.type, "gi"));
-  }
-
-  resolve(incomingAction) {
-    const type = _.get(incomingAction, "config.type");
-    const parryState = this.config.parryRoundMap[this.elapsedRounds];
-    if (parryState && incomingAction) {
-      if (evadableTypes[type]) {
-        this.user.emit(parryState, incomingAction.user);
-        // incomingAction.perfectlyDodged();
-        // TODO: Implement perfectlyDodged and perfectlyParried methods in attack classes
-      }
-    }
-    this.elapsedRounds++;
-    if (!this.parrying && this.elapsedRounds > 0) {
+  preRoundProcess() {
+    if (!this.parrying && this.elapsedRounds >= 1) {
       this.user.emit("parryPreparedMessage", this.target);
       this.parrying = true;
+    }
+  }
+
+  postRoundProcess(incomingAction) {
+    if (!incomingAction) return;
+    const parryInstance = this;
+    const damageType = _.get(incomingAction, "damageType");
+    const attackTargetsParryer = incomingAction.target === parryInstance.user;
+    const parryState =
+      parryInstance.config.parryRoundMap[parryInstance.elapsedRounds];
+    const attackIsReady = incomingAction.ready;
+    const attackCanBeParried =
+      incomingAction.damageType === damageTypes.PHYSICAL;
+
+    if (
+      parryState &&
+      attackTargetsParryer &&
+      attackCanBeParried &&
+      attackIsReady
+    ) {
+      parryInstance.user.emit(parryState, incomingAction.user);
+      if (parryState === "partialParry") {
+        incomingAction.mitigate(
+          parryInstance.config.mitigationFactors[damageType],
+          parryInstance
+        );
+      }
+      if (parryState === "perfectParry") {
+        incomingAction.avoided(parryInstance);
+      }
+      // TODO: Implement  and perfectlyParried methods in attack classes
     }
   }
 
@@ -48,6 +66,12 @@ class Parry extends IntraCommand {
     return {
       ...parry,
     };
+  }
+
+  setReady() {
+    // debug command for testing
+    this.elapsedRounds = this.config.castTime;
+    this.parrying = true;
   }
 }
 

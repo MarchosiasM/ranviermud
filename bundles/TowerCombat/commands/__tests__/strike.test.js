@@ -44,7 +44,10 @@ describe("light command", () => {
   it("emits alreadyErr if command is already selected", () => {
     character.combatData.decision = new Light(character, target);
     character.isInCombat = () => true;
-    expect(character.emit).not.toHaveBeenCalled();
+    expect(character.emit).not.toHaveBeenCalledWith(
+      "alreadyErr",
+      "light strike"
+    );
     strCommand()(null, character);
     expect(character.emit).toHaveBeenCalledWith("alreadyErr", "light strike");
   });

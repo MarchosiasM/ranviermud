@@ -1,15 +1,17 @@
 const Light = require("../Light");
 const Heavy = require("../Heavy");
 const Parry = require("../Parry");
-const { generatePlayer } = require("../../__tests__/helperFns");
+const Guard = require("../Guard");
+const { generatePlayer, advanceRound } = require("../../__tests__/helperFns");
 
 describe("Dodge", () => {
-  let tomas, bob, parryInstance;
+  let tomas, bob, parryInstance, bobsGuardInstance;
   beforeEach(() => {
     tomas = generatePlayer();
     tomas.emit = jest.fn();
     bob = generatePlayer();
     parryInstance = new Parry(tomas, bob);
+    bobsGuardInstance = new Guard(bob, tomas);
   });
   it("triggers the newParry event when instantiated", () => {
     expect(tomas.emit).toHaveBeenCalledWith("newParry", bob);
@@ -30,7 +32,7 @@ describe("Dodge", () => {
           "light strike"
         );
         for (let i = 0; i < roundsToElapse; i++) {
-          parryInstance.resolve(null); // resolves a round
+          advanceRound(parryInstance, bobsGuardInstance);
         }
         parryInstance.switch("light strike", bob);
         expect(tomas.emit).not.toHaveBeenCalledWith(
@@ -45,8 +47,8 @@ describe("Dodge", () => {
       }
     );
     it("allows switch after 2 rounds elapsed", () => {
-      parryInstance.resolve(null);
-      parryInstance.resolve(null);
+      advanceRound(parryInstance, bobsGuardInstance);
+      advanceRound(parryInstance, bobsGuardInstance);
       parryInstance.switch("light strike", bob);
       expect(tomas.emit).toHaveBeenCalledWith(
         "commitSwitch",
@@ -62,18 +64,21 @@ describe("Dodge", () => {
   describe("resolve", () => {
     it("advances the 'elapsedRounds' counter on each resolve call", () => {
       expect(parryInstance.elapsedRounds).toEqual(0);
-      parryInstance.resolve(null);
+      advanceRound(parryInstance, bobsGuardInstance);
       expect(parryInstance.elapsedRounds).toEqual(1);
-      parryInstance.resolve(null);
+      advanceRound(parryInstance, bobsGuardInstance);
       expect(parryInstance.elapsedRounds).toEqual(2);
     });
+
     it("At T-1, emit a message signaling the player they're ready to parry", () => {
+      advanceRound(parryInstance, bobsGuardInstance);
       expect(tomas.emit).not.toHaveBeenCalledWith("parryPreparedMessage", bob);
-      parryInstance.resolve(null);
+
+      advanceRound(parryInstance, bobsGuardInstance);
       expect(tomas.emit).toHaveBeenCalledWith("parryPreparedMessage", bob);
-      parryInstance.resolve(null);
       expect(parryInstance.parrying).toBeTruthy();
     });
+
     const attacks = [
       // these were made fns to resolve for undefined bob/tomas in the space between tests
       { attack: (bob, tomas) => new Heavy(bob, tomas) },
@@ -82,26 +87,37 @@ describe("Dodge", () => {
     it.each(attacks)(
       "At T-1, when resolving a %p, emit an appropriate message",
       ({ attack }) => {
-        parryInstance.resolve(null);
-        parryInstance.resolve(attack(bob, tomas));
+        const bobsAttack = attack(bob, tomas);
+        bobsAttack.setReady();
+        expect(tomas.emit).not.toHaveBeenCalledWith("partialParry", bob);
+
+        advanceRound(parryInstance, bobsAttack);
         expect(tomas.emit).toHaveBeenCalledWith("partialParry", bob);
-        expect(parryInstance.parrying).toBeTruthy();
       }
     );
+
     it.todo("triggers mitigate functions on attack classes");
+
     it.each(attacks)("at T-0, mitigate all", ({ attack }) => {
-      parryInstance.resolve(null);
-      parryInstance.resolve(null);
+      const bobsAttack = attack(bob, tomas);
+      bobsAttack.setReady();
+
+      advanceRound(parryInstance, bobsGuardInstance);
       expect(tomas.emit).not.toHaveBeenCalledWith("perfectParry", bob);
-      parryInstance.resolve(attack(bob, tomas));
+
+      advanceRound(parryInstance, bobsAttack);
       expect(tomas.emit).toHaveBeenCalledWith("perfectParry", bob);
     });
+
     it.each(attacks)("at T+1, mitigate some", ({ attack }) => {
-      parryInstance.resolve(null);
-      parryInstance.resolve(null);
-      parryInstance.resolve(null);
+      const bobsAttack = attack(bob, tomas);
+      bobsAttack.setReady();
+
+      advanceRound(parryInstance, bobsGuardInstance);
+      advanceRound(parryInstance, bobsGuardInstance);
       expect(tomas.emit).not.toHaveBeenCalledWith("partialParry", bob);
-      parryInstance.resolve(attack(bob, tomas));
+
+      advanceRound(parryInstance, bobsAttack);
       expect(tomas.emit).toHaveBeenCalledWith("partialParry", bob);
     });
   });

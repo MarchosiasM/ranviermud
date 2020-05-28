@@ -23,16 +23,20 @@ class Probe extends IntraCommand {
     return string.match(new RegExp(probe.type, "gi"));
   }
 
-  resolve(incomingAction) {
-    if (this.elapsedRounds >= 1) {
+  // end of rnd 0
+  preRoundProcess() {}
+
+  // beginning of rnd 1
+  postRoundProcess() {
+    const { elapsedRounds } = this;
+    if (elapsedRounds >= probe.triggerAdvantageOnTurn) {
       this.rollAdvantageChance();
     }
-    this.elapsedRounds++;
   }
 
   switch(type, target) {
     if (this.elapsedRounds > 1 && bonusFollowUps[type]) {
-      type.gainAdvantage();
+      type.elapseRounds();
     }
     this.user.emit("commitSwitch", type, target);
   }
@@ -41,6 +45,10 @@ class Probe extends IntraCommand {
     if (Random.inRange(0, 10) === 10) {
       this.user.emit("probeGainAdvantage");
     }
+  }
+
+  elapseAction(times = 1) {
+    this.elapsedRounds += times;
   }
 
   get config() {

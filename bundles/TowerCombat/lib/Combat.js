@@ -139,108 +139,108 @@ class Combat {
     return luck.CRITFAIL;
   }
 
-  static processOutcome(attacker, target) {
-    const { attackerResult, targetResult } = Combat.compileScores(
-      attacker,
-      target
-    );
-    const attackerPosition = Combat.calculatePosition(
-      attackerResult,
-      targetResult
-    );
-    Combat.resolvePositions(attacker, target, attackerPosition);
-  }
+  // static processOutcome(attacker, target) {
+  //   const { attackerResult, targetResult } = Combat.compileScores(
+  //     attacker,
+  //     target
+  //   );
+  //   const attackerPosition = Combat.calculatePosition(
+  //     attackerResult,
+  //     targetResult
+  //   );
+  //   Combat.resolvePositions(attacker, target, attackerPosition);
+  // }
 
-  static calculatePosition(attackerRes, targetRes) {
-    const attackerSkillRoll = Random.inRange(1, attackerRes.skill);
-    const targetSkillRoll = Random.inRange(1, targetRes.skill);
-    const delta = attackerSkillRoll - targetSkillRoll;
-    let result;
-    result = resultPosition.GR_DISADVANTAGED;
-    if (delta > -66) result = resultPosition.DISADVANTAGED;
-    if (delta > -33) result = resultPosition.NEUTRAL;
-    if (delta > 33) result = resultPosition.ADVANTAGED;
-    if (delta > 66) result = resultPosition.GR_ADVANTAGED;
-    const luckMod = Combat.calculateLuckMod(attackerRes.luck, targetRes.luck);
-    const modifiedResult = resultsMapping[resultsMapping[result] + luckMod];
-    return modifiedResult;
-  }
+  // static calculatePosition(attackerRes, targetRes) {
+  //   const attackerSkillRoll = Random.inRange(1, attackerRes.skill);
+  //   const targetSkillRoll = Random.inRange(1, targetRes.skill);
+  //   const delta = attackerSkillRoll - targetSkillRoll;
+  //   let result;
+  //   result = resultPosition.GR_DISADVANTAGED;
+  //   if (delta > -66) result = resultPosition.DISADVANTAGED;
+  //   if (delta > -33) result = resultPosition.NEUTRAL;
+  //   if (delta > 33) result = resultPosition.ADVANTAGED;
+  //   if (delta > 66) result = resultPosition.GR_ADVANTAGED;
+  //   const luckMod = Combat.calculateLuckMod(attackerRes.luck, targetRes.luck);
+  //   const modifiedResult = resultsMapping[resultsMapping[result] + luckMod];
+  //   return modifiedResult;
+  // }
 
   static calculateLuckMod(attackerLuck, targetLuck) {
     return attackerLuck - targetLuck;
   }
 
-  static resolvePositions(attacker, target, attackerPosition) {
-    switch (attackerPosition) {
-      case resultPosition.NEUTRAL:
-        Combat.resolveNeutralStrike(attacker, target);
-        break;
-      case resultPosition.ADVANTAGED:
-        Combat.resolveAdvStrike(attacker, target);
-        break;
-      case resultPosition.GR_ADVANTAGED:
-        Combat.resolveGrAdvStrike(attacker, target);
-        break;
-      case resultPosition.DISADVANTAGED:
-        Combat.resolveAdvStrike(target, attacker);
-        break;
-      case resultPosition.GR_DISADVANTAGED:
-        Combat.resolveGrAdvStrike(target, attacker);
-        break;
-      default:
-        return null;
-    }
-  }
+  // static resolvePositions(attacker, target, attackerPosition) {
+  //   switch (attackerPosition) {
+  //     case resultPosition.NEUTRAL:
+  //       Combat.resolveNeutralStrike(attacker, target);
+  //       break;
+  //     case resultPosition.ADVANTAGED:
+  //       Combat.resolveAdvStrike(attacker, target);
+  //       break;
+  //     case resultPosition.GR_ADVANTAGED:
+  //       Combat.resolveGrAdvStrike(attacker, target);
+  //       break;
+  //     case resultPosition.DISADVANTAGED:
+  //       Combat.resolveAdvStrike(target, attacker);
+  //       break;
+  //     case resultPosition.GR_DISADVANTAGED:
+  //       Combat.resolveGrAdvStrike(target, attacker);
+  //       break;
+  //     default:
+  //       return null;
+  //   }
+  // }
 
-  static resolveNeutralStrike(attacker, target) {
-    // this has three branches
-    B.sayAt(attacker, "Neutral strike");
-    B.sayAt(target, "Neutral strike");
-    B.sayAt(attacker, "You lash out");
-    const diceRoll = Random.inRange(0, 3);
-    // accidental parry
-    if (diceRoll === 1) {
-      B.sayAt(
-        attacker,
-        `*CLANG!* Your hands sting with the vibration of your weapon as you and ${target.name} deflect each others' blows.`
-      );
-      B.sayAt(
-        target,
-        `*CLANG!* Your hands sting with the vibration of your weapon as you and ${attacker.name} deflect each others' blows.`
-      );
-      return;
-    }
-    // accidental deflection, reduced damage
-    if (diceRoll == 2) {
-      B.sayAt(
-        attacker,
-        `Your attack collides with ${target.name}s, deflecting the shot just so!`
-      );
-      B.sayAt(
-        target,
-        `Your attack collides with ${attacker.name}s, deflecting the shot just so!`
-      );
-      Combat.makeAttack(attacker, target, probabilityMap.SEVENTY_FIVE);
-      Combat.makeAttack(target, attacker, probabilityMap.SEVENTY_FIVE);
-      return;
-    }
-    // full hits
-    Combat.makeAttack(target, attacker);
-    Combat.makeAttack(attacker, target);
-  }
+  // static resolveNeutralStrike(attacker, target) {
+  //   // this has three branches
+  //   B.sayAt(attacker, "Neutral strike");
+  //   B.sayAt(target, "Neutral strike");
+  //   B.sayAt(attacker, "You lash out");
+  //   const diceRoll = Random.inRange(0, 3);
+  //   // accidental parry
+  //   if (diceRoll === 1) {
+  //     B.sayAt(
+  //       attacker,
+  //       `*CLANG!* Your hands sting with the vibration of your weapon as you and ${target.name} deflect each others' blows.`
+  //     );
+  //     B.sayAt(
+  //       target,
+  //       `*CLANG!* Your hands sting with the vibration of your weapon as you and ${attacker.name} deflect each others' blows.`
+  //     );
+  //     return;
+  //   }
+  //   // accidental deflection, reduced damage
+  //   if (diceRoll == 2) {
+  //     B.sayAt(
+  //       attacker,
+  //       `Your attack collides with ${target.name}s, deflecting the shot just so!`
+  //     );
+  //     B.sayAt(
+  //       target,
+  //       `Your attack collides with ${attacker.name}s, deflecting the shot just so!`
+  //     );
+  //     Combat.makeAttack(attacker, target, probabilityMap.SEVENTY_FIVE);
+  //     Combat.makeAttack(target, attacker, probabilityMap.SEVENTY_FIVE);
+  //     return;
+  //   }
+  //   // full hits
+  //   Combat.makeAttack(target, attacker);
+  //   Combat.makeAttack(attacker, target);
+  // }
 
-  static resolveAdvStrike(attacker, target) {
-    B.sayAt(attacker, "You make an advantaged hit");
-    B.sayAt(target, "You receive an advantaged hit");
-    Combat.makeAttack(attacker, target);
-    Combat.makeAttack(target, attacker, probabilityMap.SEVENTY_FIVE);
-  }
+  // static resolveAdvStrike(attacker, target) {
+  //   B.sayAt(attacker, "You make an advantaged hit");
+  //   B.sayAt(target, "You receive an advantaged hit");
+  //   Combat.makeAttack(attacker, target);
+  //   Combat.makeAttack(target, attacker, probabilityMap.SEVENTY_FIVE);
+  // }
 
-  static resolveGrAdvStrike(attacker, target) {
-    B.sayAt(attacker, "You make a greatly advantaged hit");
-    B.sayAt(target, "You receive a greatly advantaged hit");
-    Combat.makeAttack(attacker, target);
-  }
+  // static resolveGrAdvStrike(attacker, target) {
+  //   B.sayAt(attacker, "You make a greatly advantaged hit");
+  //   B.sayAt(target, "You receive a greatly advantaged hit");
+  //   Combat.makeAttack(attacker, target);
+  // }
 
   /**
    * Actually apply some damage from an attacker to a target

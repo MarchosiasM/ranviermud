@@ -19,8 +19,19 @@ const evadableTypes = {
   [commandTypes.HEAVY]: commandTypes.HEAVY,
 };
 
+const layers = {
+  DEFENSE: "DEFENSE",
+  OFFENSE: "OFFENSE",
+};
+
+const damageTypes = {
+  PHYSICAL: "PHYSICAL",
+};
+
 module.exports = {
   perceptionTypes,
   commandTypes,
   evadableTypes,
+  layers,
+  damageTypes,
 };

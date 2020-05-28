@@ -2,7 +2,8 @@
 
 const IntraCommand = require("./IntraCommand");
 const { guard } = require("./configuration");
-const { commandTypes } = require("./commands.enum");
+const { commandTypes, damageTypes } = require("./commands.enum");
+const _ = require("lodash");
 
 class Guard extends IntraCommand {
   constructor(user, target) {
@@ -10,21 +11,26 @@ class Guard extends IntraCommand {
     this.user = user;
     this.target = target;
     this.elapsedRounds = 0;
+    this.type = guard.type;
     user.emit("newGuard", target);
   }
 
-  isInstanceOf(string) {
-    return string.match(new RegExp(guard.type, "gi"));
-  }
+  preRoundProcess() {}
 
-  resolve(incomingAction) {
-    const lightMitigationFactor = 0.9;
-    const heavyMitigationFactor = 0.9;
-    if (incomingAction && incomingAction.config) {
+  postRoundProcess(incomingAction) {
+    const { config: guardConfig } = this;
+    const { mitigationFactors } = guardConfig;
+
+    if (this.isMitigatableAndReady(incomingAction)) {
+      incomingAction.mitigate(
+        mitigationFactors[incomingAction.damageType],
+        this.config.type
+      );
+
       switch (incomingAction.config.type) {
         case commandTypes.LIGHT:
-          // incomingAction.mitigate(lightMitigationFactor, this.config.type);
           this.user.emit("guardLightMitigate");
+
           break;
         case commandTypes.HEAVY:
           // TODO: Heavy and Light need mitigation methods to hook into here
@@ -33,7 +39,6 @@ class Guard extends IntraCommand {
           break;
       }
     }
-    this.elapsedRounds++;
   }
 
   switch(type, target) {
@@ -48,6 +53,19 @@ class Guard extends IntraCommand {
     return {
       ...guard,
     };
+  }
+
+  switchable() {
+    return true;
+  }
+
+  isMitigatableAndReady(incomingAction) {
+    return (
+      incomingAction &&
+      incomingAction.ready &&
+      incomingAction.damageType === damageTypes.PHYSICAL &&
+      incomingAction.target === this.user
+    );
   }
 }
 

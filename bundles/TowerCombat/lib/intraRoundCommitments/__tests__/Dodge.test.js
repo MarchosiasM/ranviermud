@@ -2,15 +2,16 @@ const Guard = require("../Guard");
 const Light = require("../Light");
 const Heavy = require("../Heavy");
 const Dodge = require("../Dodge");
-const { generatePlayer } = require("../../__tests__/helperFns");
+const { generatePlayer, advanceRound } = require("../../__tests__/helperFns");
 
 describe("Dodge", () => {
-  let tomas, bob, dodgeInstance;
+  let tomas, bob, dodgeInstance, bobsGuardInstance;
   beforeEach(() => {
     tomas = generatePlayer();
     tomas.emit = jest.fn();
     bob = generatePlayer();
     dodgeInstance = new Dodge(tomas, bob);
+    bobsGuardInstance = new Guard(bob, tomas);
   });
   it("triggers the newGuard event when instantiated", () => {
     expect(tomas.emit).toHaveBeenCalledWith("newDodge", bob);
@@ -31,7 +32,8 @@ describe("Dodge", () => {
           "light strike"
         );
         for (let i = 0; i < roundsToElapse; i++) {
-          dodgeInstance.resolve(null); // resolves a round
+          advanceRound(dodgeInstance, bobsGuardInstance);
+          expect(dodgeInstance.elapsedRounds).toBe(i + 1);
         }
         dodgeInstance.switch("light strike", bob);
         expect(tomas.emit).not.toHaveBeenCalledWith(
@@ -46,10 +48,10 @@ describe("Dodge", () => {
       }
     );
     it("allows switch after 4 rounds elapsed", () => {
-      dodgeInstance.resolve(null); // 0
-      dodgeInstance.resolve(null); // 1
-      dodgeInstance.resolve(null); // 2
-      dodgeInstance.resolve(null); // 3
+      advanceRound(dodgeInstance, bobsGuardInstance);
+      advanceRound(dodgeInstance, bobsGuardInstance);
+      advanceRound(dodgeInstance, bobsGuardInstance);
+      advanceRound(dodgeInstance, bobsGuardInstance);
       dodgeInstance.switch("light strike", bob);
       expect(tomas.emit).toHaveBeenCalledWith(
         "commitSwitch",
@@ -65,36 +67,42 @@ describe("Dodge", () => {
   describe("resolve", () => {
     it("advances the 'elapsedRounds' counter on each resolve call", () => {
       expect(dodgeInstance.elapsedRounds).toEqual(0);
-      dodgeInstance.resolve(null);
+
+      advanceRound(dodgeInstance, bobsGuardInstance);
       expect(dodgeInstance.elapsedRounds).toEqual(1);
-      dodgeInstance.resolve(null);
+
+      advanceRound(dodgeInstance, bobsGuardInstance);
       expect(dodgeInstance.elapsedRounds).toEqual(2);
     });
     it("at the end of the 2nd round, player enters invulnerability", () => {
-      dodgeInstance.resolve(null);
+      advanceRound(dodgeInstance, bobsGuardInstance);
+      advanceRound(dodgeInstance, bobsGuardInstance);
       expect(tomas.emit).not.toHaveBeenCalledWith("dodgeInvulnBegin");
-      dodgeInstance.resolve(null);
+      advanceRound(dodgeInstance, bobsGuardInstance);
       expect(tomas.emit).toHaveBeenCalledWith("dodgeInvulnBegin");
-      expect(dodgeInstance.dodging).toBeTruthy();
     });
     it("does not emit an event to mitigate heavy damage if two rounds haven't elapsed", () => {
-      dodgeInstance.resolve(new Heavy(bob, tomas));
-      dodgeInstance.resolve(new Light(bob, tomas));
+      advanceRound(dodgeInstance, new Heavy(bob, tomas));
+      advanceRound(dodgeInstance, new Light(bob, tomas));
       expect(tomas.emit).not.toHaveBeenCalledWith("heavyDodge", bob);
       expect(tomas.emit).not.toHaveBeenCalledWith("lightDodge", bob);
     });
     it("does emit an event to mitigate heavy damage if two rounds have elapsed", () => {
-      dodgeInstance.resolve(null);
-      dodgeInstance.resolve(null);
+      const bobsHeavy = new Heavy(bob, tomas);
+      bobsHeavy.setReady();
+      advanceRound(dodgeInstance, bobsGuardInstance);
+      advanceRound(dodgeInstance, bobsGuardInstance);
 
-      dodgeInstance.resolve(new Heavy(bob, tomas));
+      advanceRound(dodgeInstance, bobsHeavy);
       expect(tomas.emit).toHaveBeenCalledWith("heavyDodge", bob);
     });
-    it("does emit an event to mitigate light damage if two rounds have elapsed", () => {
-      dodgeInstance.resolve(null);
-      dodgeInstance.resolve(null);
+    it("does emit an event to mitigate light damage if light and dodge are ready", () => {
+      const bobsLightInstance = new Light(bob, tomas);
 
-      dodgeInstance.resolve(new Light(bob, tomas));
+      for (let i = 0; i < dodgeInstance.config.castTime; i++) {
+        expect(tomas.emit).not.toHaveBeenCalledWith("lightDodge", bob);
+        advanceRound(dodgeInstance, bobsLightInstance);
+      }
       expect(tomas.emit).toHaveBeenCalledWith("lightDodge", bob);
     });
     it.todo("activates the mitigation method on the incoming damage obj");

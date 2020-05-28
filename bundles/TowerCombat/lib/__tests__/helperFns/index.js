@@ -1,5 +1,6 @@
 const Engagement = require("../../Engagement/index");
 const basePlayer = require("../../../playerFixtures/tom.json");
+const RoundResolver = require("../../RoundResolver");
 const _ = require("lodash");
 
 let playerID = 0;
@@ -52,8 +53,19 @@ const generateState = (stateOverrides) => {
   };
 };
 
+const advanceRound = (playerOneCommand, playerTwoCommand) => {
+  const resolutionObj = new RoundResolver([playerTwoCommand, playerOneCommand]);
+  playerOneCommand.preRoundProcess(playerTwoCommand, resolutionObj);
+  playerTwoCommand.preRoundProcess(playerOneCommand, resolutionObj);
+  playerOneCommand.elapseRounds();
+  playerTwoCommand.elapseRounds();
+  playerOneCommand.postRoundProcess(playerTwoCommand, resolutionObj);
+  playerTwoCommand.postRoundProcess(playerOneCommand, resolutionObj);
+};
+
 module.exports = {
   generateEngagement,
   generatePlayer,
   generateState,
+  advanceRound,
 };

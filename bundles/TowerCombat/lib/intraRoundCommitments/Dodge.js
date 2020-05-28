@@ -1,12 +1,11 @@
 "use strict";
 
 const IntraCommand = require("./IntraCommand");
-const { dodge } = require("./configuration");
+const config = require("./configuration");
+const { commandTypes, damageTypes } = require("./commands.enum");
+const _ = require("lodash");
 
-const dodgeableActions = {
-  LIGHT: "light strike",
-  HEAVY: "heavy strike",
-};
+const { dodge } = config;
 
 class Dodge extends IntraCommand {
   constructor(user, target) {
@@ -14,45 +13,64 @@ class Dodge extends IntraCommand {
     this.user = user;
     this.target = target;
     this.elapsedRounds = 0;
-    this.dodging = false;
+    this.readyToDodge = false;
+    this.type = this.config.type;
     user.emit("newDodge", target);
   }
 
-  isInstanceOf(string) {
-    return string.match(new RegExp(dodge.type, "gi"));
+  preRoundProcess(incomingAction) {
+    if (this.elapsedRounds > 1 && !this.readyToDodge) {
+      this.user.emit("dodgeInvulnBegin");
+      this.readyToDodge = true;
+    }
   }
 
-  resolve(incomingAction) {
-    if (this.dodging && incomingAction) {
-      if (incomingAction.config.type === dodgeableActions.LIGHT) {
-        this.user.emit("lightDodge", incomingAction.user);
-        // incomingAction.perfectlyDodged();
-        // TODO: Implement perfectlyDodged and perfectlyParried methods in attack classes
-      }
-      if (incomingAction.config.type === dodgeableActions.HEAVY) {
-        this.user.emit("heavyDodge", incomingAction.user);
-        // incomingAction.perfectlyDodged();
-      }
-    }
-    this.elapsedRounds++;
-    if (this.elapsedRounds > 1 && !this.dodge) {
-      this.user.emit("dodgeInvulnBegin");
-      this.dodging = true;
+  postRoundProcess(incomingAction) {
+    if (this.actionIsDodgeableAndActive(incomingAction) && this.readyToDodge) {
+      this.handleDodgeMessaging(incomingAction.type, incomingAction.user);
+      incomingAction.avoided(this.config.type);
     }
   }
 
   switch(type, target) {
-    if (this.elapsedRounds < this.config.castTime) {
+    if (!this.switchable) {
       this.user.emit("dodgeCommitMessage", type);
       return;
     }
     this.user.emit("commitSwitch", type, target);
   }
 
+  setReady() {
+    this.elapseRounds === this.config.castTime;
+    this.readyToDodge = true;
+  }
+
+  handleDodgeMessaging(type, attacker) {
+    switch (type) {
+      case commandTypes.LIGHT:
+        this.user.emit("lightDodge", attacker);
+        break;
+      case commandTypes.HEAVY:
+        this.user.emit("heavyDodge", attacker);
+        break;
+    }
+  }
+
+  get switchable() {
+    return this.elapsedRounds >= this.config.castTime;
+  }
+
   get config() {
     return {
       ...dodge,
     };
+  }
+  actionIsDodgeableAndActive(incomingAction) {
+    return (
+      incomingAction.target === this.user &&
+      incomingAction.damageType === damageTypes.PHYSICAL &&
+      incomingAction.ready
+    );
   }
 }
 

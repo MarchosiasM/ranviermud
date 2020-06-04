@@ -2,8 +2,8 @@
 
 const IntraCommand = require("./IntraCommand");
 const { light } = require("./configuration");
-const Random = require("rando-js");
-const Damage = require("ranvier");
+const { Random } = require("rando-js");
+const { Damage } = require("ranvier");
 
 class Light extends IntraCommand {
   constructor(user, target) {
@@ -11,15 +11,13 @@ class Light extends IntraCommand {
     this.user = user;
     this.target = target;
     this.ready = false;
-    this.strike = {
-      damageMod: 100,
-      mitigated: {},
-      consequences: {},
-    };
     this.mod = light.baseDamage;
-    this.mitigated = {};
+    this.mitigated = {
+      mult: 1,
+    };
     this.consequences = {};
     this.elapsedRounds = 0;
+    this.completed = false;
     this.type = this.config.type;
     user.emit("newLight", target);
   }
@@ -28,7 +26,7 @@ class Light extends IntraCommand {
     return string.match(new RegExp(light.type, "gi"));
   }
 
-  preRoundProcess() {
+  update() {
     if (this.elapsedRounds >= this.config.castTime - 1) {
       this.ready = true;
     }
@@ -38,37 +36,22 @@ class Light extends IntraCommand {
     this.elapsedRounds += times;
   }
 
-  postRoundProcess(incomingAction) {}
+  compareAndApply(incomingAction) {}
 
   commit() {
-    const { mod } = this.strike.damageMod;
-    let amount = this.calculateWeaponDamage(this.user);
-    let critical = false;
+    if (!this.ready) return;
+    if (this.mitigated.avoided) {
+      return;
+    }
+    const mod = this.mitigated.mult;
+    let amount = light.baseDamage;
     if (mod) {
       amount = Math.ceil(amount * mod);
     }
-    if (this.user.hasAttribute("critical")) {
-      const critChance = Math.max(
-        this.user.getMaxAttribute("critical") || 0,
-        0
-      );
-      critical = Random.probability(critChance);
-      if (critical) {
-        amount = Math.ceil(amount * 1.5);
-      }
-    }
-
     const weapon = this.user.equipment.get("wield");
-    const damage = new Damage(
-      "health",
-      amount,
-      this.user,
-      weapon || this.user,
-      {
-        critical,
-      }
-    );
+    const damage = new Damage("health", amount, this.user, weapon || this.user);
     damage.commit(this.target);
+    this.completed = true;
   }
 
   switch(type, target) {
@@ -80,13 +63,13 @@ class Light extends IntraCommand {
   }
 
   mitigate(factor, source) {
-    this.user.emit(`lightMitigation`, source.user);
-    this.strike.mitigated.mult = factor;
+    this.user.emit(`lightMitigation`, source);
+    this.mitigated.mult = factor;
   }
 
-  avoided() {
-    this.user.emit(`lightAvoided`);
-    this.strike.mitigated.avoided = true;
+  avoided(source) {
+    this.user.emit(`lightAvoided`, source);
+    this.mitigated.avoided = true;
   }
 
   get switchable() {
@@ -107,6 +90,73 @@ class Light extends IntraCommand {
     // debug command for testing
     this.elapsedRounds = this.config.castTime;
     this.ready = true;
+  }
+
+  /**
+   * Generate an amount of weapon damage
+   * @param {Character} attacker
+   * @param {boolean} average Whether to find the average or a random inRange(0, 3);between min/max
+   * @return {number}
+   */
+  static calculateWeaponDamage(attacker, average = false) {
+    let weaponDamage = Light.getWeaponDamage(attacker);
+    let amount = 0;
+    if (average) {
+      amount = (weaponDamage.min + weaponDamage.max) / 2;
+    } else {
+      amount = Random.inRange(weaponDamage.min, weaponDamage.max);
+    }
+
+    return Light.normalizeWeaponDamage(attacker, amount);
+  }
+
+  /**
+   * Get the damage of the weapon the character is wielding
+   * @param {Character} attacker
+   * @return {{max: number, min: number}}
+   */
+  static getWeaponDamage(attacker) {
+    const weapon = attacker.equipment.get("wield");
+    let min = 0,
+      max = 0;
+    if (weapon) {
+      min = weapon.metadata.minDamage;
+      max = weapon.metadata.maxDamage;
+    }
+
+    return {
+      max,
+      min,
+    };
+  }
+
+  /**
+   * Get the speed of the currently equipped weapon
+   * @param {Character} attacker
+   * @return {number}
+   */
+  static getWeaponSpeed(attacker) {
+    let speed = 2.0;
+    const weapon = attacker.equipment.get("wield");
+    if (!attacker.isNpc && weapon) {
+      speed = weapon.metadata.speed;
+    }
+
+    return speed;
+  }
+
+  /**
+   * Get a damage amount adjusted by attack power/weapon speed
+   * @param {Character} attacker
+   * @param {number} amount
+   * @return {number}
+   */
+  static normalizeWeaponDamage(attacker, amount) {
+    let speed = Light.getWeaponSpeed(attacker);
+    amount += attacker.hasAttribute("strength")
+      ? attacker.getAttribute("strength")
+      : attacker.level;
+    return Math.round((amount / 3.5) * speed);
   }
 }
 

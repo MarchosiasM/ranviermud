@@ -1,7 +1,10 @@
 const Guard = require("../Guard");
 const Light = require("../Light");
 const Heavy = require("../Heavy");
-const { generatePlayer, advanceRound } = require("../../__tests__/helperFns");
+const {
+  generatePlayer,
+  generateCombatAndAdvance,
+} = require("../../__tests__/helperFns");
 
 describe("Guard", () => {
   let tomas, bob, guardInstance, bobsGuardInstance;
@@ -37,15 +40,21 @@ describe("Guard", () => {
       expect(tomas.emit).toHaveBeenCalledWith("commitSwitch", "dodge", bob);
     });
     it("emits 'guardDodgeAdvantage' if a dodge is next but two rounds haven't elapsed", () => {
-      advanceRound(guardInstance, bobsGuardInstance);
-      advanceRound(guardInstance, bobsGuardInstance);
+      const continueAdvance = generateCombatAndAdvance([
+        guardInstance,
+        bobsGuardInstance,
+      ]);
+      continueAdvance();
       guardInstance.switch("dodge", bob);
       expect(tomas.emit).toHaveBeenCalledWith("guardDodgeAdvantage");
       expect(tomas.emit).toHaveBeenCalledWith("commitSwitch", "dodge", bob);
     });
     it("does not emit 'guardDodgeAdvantage' when switched to any other commandType", () => {
-      advanceRound(guardInstance, bobsGuardInstance);
-      advanceRound(guardInstance, bobsGuardInstance);
+      const continueAdvance = generateCombatAndAdvance([
+        guardInstance,
+        bobsGuardInstance,
+      ]);
+      continueAdvance();
       guardInstance.switch("light strike", bob);
       expect(tomas.emit).not.toHaveBeenCalledWith("guardDodgeAdvantage");
       expect(tomas.emit).toHaveBeenCalledWith(
@@ -55,14 +64,17 @@ describe("Guard", () => {
       );
     });
   });
-  describe("postRoundProcess", () => {
+  describe("compareAndApply", () => {
     it("advances the 'elapsedRounds' counter on each resolve call", () => {
       expect(guardInstance.elapsedRounds).toEqual(0);
 
-      advanceRound(guardInstance, bobsGuardInstance);
+      const continueAdvance = generateCombatAndAdvance([
+        guardInstance,
+        bobsGuardInstance,
+      ]);
       expect(guardInstance.elapsedRounds).toEqual(1);
 
-      advanceRound(guardInstance, bobsGuardInstance);
+      continueAdvance(guardInstance, bobsGuardInstance);
       expect(guardInstance.elapsedRounds).toEqual(2);
       expect(tomas.emit).not.toHaveBeenCalledWith("guardLightMitigate");
       expect(tomas.emit).not.toHaveBeenCalledWith("guardHeavyMitigate");
@@ -72,7 +84,7 @@ describe("Guard", () => {
       expect(tomas.emit).not.toHaveBeenCalledWith("guardLightMitigate");
 
       bobsLightInstance.setReady();
-      advanceRound(guardInstance, bobsLightInstance);
+      generateCombatAndAdvance([guardInstance, bobsLightInstance]);
 
       expect(tomas.emit).toHaveBeenCalledWith("guardLightMitigate");
     });

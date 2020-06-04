@@ -14,24 +14,34 @@ module.exports = {
       B.sayAt(this, `You begin a quick strike!`);
     },
   lightMitigation: (state) =>
-    function (source, mitigator) {
-      switch (source) {
+    function (source) {
+      switch (source.type) {
         case commandTypes.PARRY:
-          B.sayAt(this, `${mitigator} deflects some of your blow!`);
+          B.sayAt(this, `${source.user.name} deflects some of your blow!`);
           break;
         case commandTypes.GUARD:
           B.sayAt(
             this,
-            `${mitigator} manages to avoid the worst of your blow!`
+            `${source.user.name} manages to avoid the worst of your blow!`
           );
           break;
       }
     },
   lightAvoided: (state) =>
     function (source) {
-      B.sayAt(
-        this,
-        `Your strike finds only air as your weapon sails effortlessly through where your opponent was.`
-      );
+      switch (source.type) {
+        case commandTypes.DODGE:
+          B.sayAt(
+            this,
+            `Your strike finds only air as your weapon sails effortlessly through where ${source.user.name} was.`
+          );
+          break;
+        case commandTypes.PARRY:
+          B.sayAt(
+            this,
+            `With a deft parry your blow is sent off course by ${source.user.name}`
+          );
+          break;
+      }
     },
 };

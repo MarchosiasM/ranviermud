@@ -2,7 +2,11 @@ const Guard = require("../Guard");
 const Light = require("../Light");
 const Heavy = require("../Heavy");
 const Dodge = require("../Dodge");
-const { generatePlayer, advanceRound } = require("../../__tests__/helperFns");
+const {
+  generatePlayer,
+  advanceRound,
+  generateCombatAndAdvance,
+} = require("../../__tests__/helperFns");
 
 describe("Dodge", () => {
   let tomas, bob, dodgeInstance, bobsGuardInstance;
@@ -48,10 +52,13 @@ describe("Dodge", () => {
       }
     );
     it("allows switch after 4 rounds elapsed", () => {
-      advanceRound(dodgeInstance, bobsGuardInstance);
-      advanceRound(dodgeInstance, bobsGuardInstance);
-      advanceRound(dodgeInstance, bobsGuardInstance);
-      advanceRound(dodgeInstance, bobsGuardInstance);
+      const continueAdvance = generateCombatAndAdvance([
+        dodgeInstance,
+        bobsGuardInstance,
+      ]);
+      continueAdvance();
+      continueAdvance();
+      continueAdvance();
       dodgeInstance.switch("light strike", bob);
       expect(tomas.emit).toHaveBeenCalledWith(
         "commitSwitch",
@@ -68,17 +75,23 @@ describe("Dodge", () => {
     it("advances the 'elapsedRounds' counter on each resolve call", () => {
       expect(dodgeInstance.elapsedRounds).toEqual(0);
 
-      advanceRound(dodgeInstance, bobsGuardInstance);
+      const continueAdvance = generateCombatAndAdvance([
+        dodgeInstance,
+        bobsGuardInstance,
+      ]);
       expect(dodgeInstance.elapsedRounds).toEqual(1);
 
-      advanceRound(dodgeInstance, bobsGuardInstance);
+      continueAdvance();
       expect(dodgeInstance.elapsedRounds).toEqual(2);
     });
     it("at the end of the 2nd round, player enters invulnerability", () => {
-      advanceRound(dodgeInstance, bobsGuardInstance);
-      advanceRound(dodgeInstance, bobsGuardInstance);
+      const continueAdvance = generateCombatAndAdvance([
+        dodgeInstance,
+        bobsGuardInstance,
+      ]);
+      continueAdvance();
       expect(tomas.emit).not.toHaveBeenCalledWith("dodgeInvulnBegin");
-      advanceRound(dodgeInstance, bobsGuardInstance);
+      continueAdvance();
       expect(tomas.emit).toHaveBeenCalledWith("dodgeInvulnBegin");
     });
     it("does not emit an event to mitigate heavy damage if two rounds haven't elapsed", () => {

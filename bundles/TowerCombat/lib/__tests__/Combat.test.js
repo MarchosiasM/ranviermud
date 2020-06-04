@@ -8,7 +8,7 @@ describe("Combat", () => {
       const engagement = generateEngagement(1);
       const character = engagement.characters[0];
       engagement.lag = 1;
-      expect(Combat.updateRound(null, character)).toBeFalsy();
+      expect(Combat.updateRound({}, character)).toBeFalsy();
     });
     it("Enters the loop when lag is < 0", () => {
       const engagement = generateEngagement(1);

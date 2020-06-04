@@ -8,39 +8,26 @@ const Heavy = require("../lib/intraRoundCommitments/Heavy");
 const guardComms = require("./commandSpecific/guardComms");
 const probeComms = require("./commandSpecific/probeComms");
 const dodgeComms = require("./commandSpecific/dodgeComms");
+const lightComms = require("./commandSpecific/lightComms");
+const parryComms = require("./commandSpecific/parryComms");
 const { commandTypes } = require("../lib/intraRoundCommitments/commands.enum");
 
 module.exports = {
   ...guardComms,
   ...probeComms,
   ...dodgeComms,
+  ...lightComms,
+  ...parryComms,
   attemptSwitch: (state) =>
     function (type, target) {
       if (!target) Logger.error(`No target found for type ${type}`);
-      switch (type) {
-        case "light":
-          this.combatData.decision.switch(type, target);
-          break;
-        case "guard":
-          this.combatData.decision.switch(type, target);
-          break;
-        case "probe":
-          this.combatData.decision.switch(type, target);
-          break;
-        case "dodge":
-          this.combatData.decision.switch(type, target);
-          break;
-        case "parry":
-          this.combatData.decision.switch(type, target);
-          break;
-        case "heavy":
-          this.combatData.decision.switch(type, target);
-          break;
-        default:
-          Logger.error(
-            `${this.name} input a command type I couldn't parse. ${type}`
-          );
+      if (commandTypes[type]) {
+        this.combatData.decision.switch(type, target);
+        return;
       }
+      Logger.error(
+        `${this.name} input a command type I couldn't parse. ${type}`
+      );
     },
   commitSwitch: (state) =>
     function (type, target) {
@@ -86,21 +73,21 @@ module.exports = {
     function (target) {
       B.sayAt(
         this,
-        `You regard ${target} warily, waiting for a chance to strike.`
+        `You regard ${target.name} warily, waiting for a chance to strike.`
       );
     },
   guardLightMitigate: (state) =>
     function (target) {
       B.sayAt(
         this,
-        `You lean into ${target}'s strike, shrugging off some of the blow.`
+        `You lean into ${target.name}'s strike, shrugging off some of the blow.`
       );
     },
   guardHeavyMitigate: (state) =>
     function (target) {
       B.sayAt(
         this,
-        `You lean into ${target}'s mighty blow, taking the worst of it but preventing some of the pain.`
+        `You lean into ${target.name}'s mighty blow, taking the worst of it but preventing some of the pain.`
       );
     },
 };

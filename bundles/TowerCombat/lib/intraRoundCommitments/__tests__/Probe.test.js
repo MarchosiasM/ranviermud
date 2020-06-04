@@ -1,6 +1,9 @@
 const Probe = require("../Probe");
 const Light = require("../Light");
-const { generatePlayer, advanceRound } = require("../../__tests__/helperFns");
+const {
+  generatePlayer,
+  generateCombatAndAdvance,
+} = require("../../__tests__/helperFns");
 
 describe("Probe", () => {
   let tomas, bob, probeInstance, bobsLightInstance;
@@ -30,9 +33,12 @@ describe("Probe", () => {
 
   it("advances the 'elapsedRounds' counter on each resolve call", () => {
     expect(probeInstance.elapsedRounds).toEqual(0);
-    advanceRound(probeInstance, bobsLightInstance);
+    const continueAdvance = generateCombatAndAdvance([
+      probeInstance,
+      bobsLightInstance,
+    ]);
     expect(probeInstance.elapsedRounds).toEqual(1);
-    advanceRound(probeInstance, bobsLightInstance);
+    continueAdvance();
     expect(probeInstance.elapsedRounds).toEqual(2);
   });
 
@@ -41,14 +47,16 @@ describe("Probe", () => {
     probeInstance.rollAdvantageChance = mockRollAdvantageChance;
 
     expect(mockRollAdvantageChance).not.toHaveBeenCalled();
-
-    advanceRound(probeInstance, bobsLightInstance);
+    const continueAdvance = generateCombatAndAdvance([
+      probeInstance,
+      bobsLightInstance,
+    ]);
     expect(mockRollAdvantageChance).not.toHaveBeenCalled();
 
-    advanceRound(probeInstance, bobsLightInstance);
+    continueAdvance();
     expect(mockRollAdvantageChance).toHaveBeenCalledTimes(1);
 
-    advanceRound(probeInstance, bobsLightInstance);
+    continueAdvance();
     expect(mockRollAdvantageChance).toHaveBeenCalledTimes(2);
   });
 

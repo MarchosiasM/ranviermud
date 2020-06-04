@@ -16,14 +16,14 @@ class Parry extends IntraCommand {
     this.user.emit("newParry", target);
   }
 
-  preRoundProcess() {
+  update() {
     if (!this.parrying && this.elapsedRounds >= 1) {
       this.user.emit("parryPreparedMessage", this.target);
       this.parrying = true;
     }
   }
 
-  postRoundProcess(incomingAction) {
+  compareAndApply(incomingAction) {
     if (!incomingAction) return;
     const parryInstance = this;
     const damageType = _.get(incomingAction, "damageType");

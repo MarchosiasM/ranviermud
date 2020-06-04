@@ -20,9 +20,9 @@ class Heavy extends IntraCommand {
     };
   }
 
-  preRoundProcess() {}
+  update() {}
 
-  postRoundProcess() {}
+  compareAndApply() {}
 
   elapseRounds() {}
 

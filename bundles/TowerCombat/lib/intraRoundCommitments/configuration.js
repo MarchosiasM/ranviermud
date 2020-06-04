@@ -37,6 +37,7 @@ module.exports = {
     perceptMod: 0.5,
     perceptThreshold: 8,
   },
+
   parry: {
     castTime: 2,
     range: 5,
@@ -56,10 +57,11 @@ module.exports = {
       [damageTypes.PHYSICAL]: 0.5,
     },
   },
+
   probe: {
     castTime: 0,
     range: 5,
-    triggerAdvantageOnTurn: 2,
+    triggerAdvantageOnTurn: 1,
     interruptable: null,
     type: commandTypes.PROBE,
     layer: layers.OFFENSE,
@@ -68,6 +70,7 @@ module.exports = {
     perceptMod: 1,
     perceptThreshold: 10,
   },
+
   light: {
     castTime: 4,
     range: 5,
@@ -83,6 +86,7 @@ module.exports = {
       type: damageTypes.PHYSICAL,
     },
   },
+
   heavy: {
     castTime: 6,
     range: 5,

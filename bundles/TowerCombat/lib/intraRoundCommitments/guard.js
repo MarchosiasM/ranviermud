@@ -15,16 +15,16 @@ class Guard extends IntraCommand {
     user.emit("newGuard", target);
   }
 
-  preRoundProcess() {}
+  update() {}
 
-  postRoundProcess(incomingAction) {
+  compareAndApply(incomingAction) {
     const { config: guardConfig } = this;
     const { mitigationFactors } = guardConfig;
 
     if (this.isMitigatableAndReady(incomingAction)) {
       incomingAction.mitigate(
         mitigationFactors[incomingAction.damageType],
-        this.config.type
+        this
       );
 
       switch (incomingAction.config.type) {
@@ -33,8 +33,6 @@ class Guard extends IntraCommand {
 
           break;
         case commandTypes.HEAVY:
-          // TODO: Heavy and Light need mitigation methods to hook into here
-          // incomingAction.mitigate(heavyMitigationFactor, this.config.type);
           this.user.emit("guardHeavyMitigate");
           break;
       }

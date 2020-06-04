@@ -24,15 +24,15 @@ class Probe extends IntraCommand {
   }
 
   // end of rnd 0
-  preRoundProcess() {}
-
-  // beginning of rnd 1
-  postRoundProcess() {
+  update() {
     const { elapsedRounds } = this;
     if (elapsedRounds >= probe.triggerAdvantageOnTurn) {
       this.rollAdvantageChance();
     }
   }
+
+  // beginning of rnd 1
+  compareAndApply() {}
 
   switch(type, target) {
     if (this.elapsedRounds > 1 && bonusFollowUps[type]) {

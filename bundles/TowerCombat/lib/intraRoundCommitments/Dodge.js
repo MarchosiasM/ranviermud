@@ -2,7 +2,7 @@
 
 const IntraCommand = require("./IntraCommand");
 const config = require("./configuration");
-const { commandTypes, damageTypes } = require("./commands.enum");
+const { commandTypes, damageTypes, layers } = require("./commands.enum");
 const _ = require("lodash");
 
 const { dodge } = config;
@@ -16,19 +16,24 @@ class Dodge extends IntraCommand {
     this.readyToDodge = false;
     this.type = this.config.type;
     user.emit("newDodge", target);
+    this.signature = {
+      user: user,
+      type: dodge.type,
+      roundsElapsed: this.elapseRounds,
+    };
   }
 
-  preRoundProcess(incomingAction) {
+  update() {
     if (this.elapsedRounds > 1 && !this.readyToDodge) {
       this.user.emit("dodgeInvulnBegin");
       this.readyToDodge = true;
     }
   }
 
-  postRoundProcess(incomingAction) {
+  compareAndApply(incomingAction) {
     if (this.actionIsDodgeableAndActive(incomingAction) && this.readyToDodge) {
       this.handleDodgeMessaging(incomingAction.type, incomingAction.user);
-      incomingAction.avoided(this.config.type);
+      incomingAction.avoided(this.signature);
     }
   }
 
@@ -68,6 +73,7 @@ class Dodge extends IntraCommand {
   actionIsDodgeableAndActive(incomingAction) {
     return (
       incomingAction.target === this.user &&
+      incomingAction.layer !== layers.DEFENSE &&
       incomingAction.damageType === damageTypes.PHYSICAL &&
       incomingAction.ready
     );

@@ -2,8 +2,11 @@ const Light = require("../Light");
 const Guard = require("../Guard");
 const Parry = require("../Parry");
 const Dodge = require("../Dodge");
-const { generatePlayer, advanceRound } = require("../../__tests__/helperFns");
-const config = require("../configuration");
+const {
+  generatePlayer,
+  advanceRound,
+  generateCombatAndAdvance,
+} = require("../../__tests__/helperFns");
 
 describe("Light", () => {
   let tomas, bob, lightInstance, bobsGuardInstance;
@@ -52,10 +55,13 @@ describe("Light", () => {
       }
     );
     it("allows switch after 4 rounds elapsed", () => {
-      advanceRound(lightInstance, bobsGuardInstance);
-      advanceRound(lightInstance, bobsGuardInstance);
-      advanceRound(lightInstance, bobsGuardInstance);
-      advanceRound(lightInstance, bobsGuardInstance);
+      const continueAdvance = generateCombatAndAdvance([
+        lightInstance,
+        bobsGuardInstance,
+      ]);
+      continueAdvance();
+      continueAdvance();
+      continueAdvance();
       lightInstance.switch("dodge", bob);
       expect(tomas.emit).toHaveBeenCalledWith("commitSwitch", "dodge", bob);
       expect(tomas.emit).not.toHaveBeenCalledWith(
@@ -64,72 +70,89 @@ describe("Light", () => {
       );
     });
   });
-  describe("postRoundProcess", () => {
+  describe("compareAndApply", () => {
     it("advances the 'elapsedRounds' counter on each resolve call", () => {
       expect(lightInstance.elapsedRounds).toEqual(0);
 
-      advanceRound(lightInstance, bobsGuardInstance);
+      const continueAdvance = generateCombatAndAdvance([
+        lightInstance,
+        bobsGuardInstance,
+      ]);
       expect(lightInstance.elapsedRounds).toEqual(1);
 
-      advanceRound(lightInstance, bobsGuardInstance);
+      continueAdvance();
       expect(lightInstance.elapsedRounds).toEqual(2);
     });
     it("At T-0, begin to resolve a strike", () => {
-      advanceRound(lightInstance, bobsGuardInstance);
-      advanceRound(lightInstance, bobsGuardInstance);
-      advanceRound(lightInstance, bobsGuardInstance);
+      const continueAdvance = generateCombatAndAdvance([
+        lightInstance,
+        bobsGuardInstance,
+      ]);
+      continueAdvance();
+      continueAdvance();
       expect(lightInstance.ready).not.toBeTruthy();
 
-      advanceRound(lightInstance, bobsGuardInstance);
+      continueAdvance();
       expect(lightInstance.ready).toBeTruthy();
     });
     it("against guard, correctly mitigates", () => {
-      advanceRound(lightInstance, bobsGuardInstance);
-      expect(lightInstance.strike.mitigated.mult).toBeFalsy();
+      const continueAdvance = generateCombatAndAdvance([
+        lightInstance,
+        bobsGuardInstance,
+      ]);
+      expect(lightInstance.mitigated.mult).toBe(1);
 
       lightInstance.setReady();
 
-      advanceRound(lightInstance, bobsGuardInstance);
-      expect(lightInstance.strike.mitigated.mult).toBe(0.75);
+      continueAdvance();
+      expect(lightInstance.mitigated.mult).toBe(0.75);
     });
     it("when striking against a prepared dodge, records correctly", () => {
       const bobsDodgeInstance = new Dodge(bob, tomas);
 
-      advanceRound(lightInstance, bobsDodgeInstance);
-      expect(lightInstance.strike.mitigated.avoided).toBeFalsy();
+      const continueAdvance = generateCombatAndAdvance([
+        lightInstance,
+        bobsDodgeInstance,
+      ]);
+      expect(lightInstance.mitigated.avoided).toBeFalsy();
 
       bobsDodgeInstance.setReady();
       lightInstance.setReady();
 
-      advanceRound(lightInstance, bobsDodgeInstance);
-      expect(lightInstance.strike.mitigated.avoided).toBeTruthy();
+      continueAdvance(lightInstance, bobsDodgeInstance);
+      expect(lightInstance.mitigated.avoided).toBeTruthy();
     });
     it("when striking against a prepared parry, records correctly", () => {
       const bobsParryInstance = new Parry(bob, tomas);
 
-      advanceRound(lightInstance, bobsParryInstance);
-      expect(lightInstance.strike.mitigated.mult).not.toBe(0.74);
+      const continueAdvance = generateCombatAndAdvance([
+        lightInstance,
+        bobsParryInstance,
+      ]);
+      expect(lightInstance.mitigated.mult).not.toBe(0.74);
 
       bobsParryInstance.setReady();
       lightInstance.setReady();
 
-      advanceRound(lightInstance, bobsParryInstance);
-      expect(lightInstance.strike.mitigated.mult).toBe(0.5);
+      continueAdvance();
+      expect(lightInstance.mitigated.mult).toBe(0.5);
     });
     it("when striking against a near parry, records correctly", () => {
       const bobsParryInstance = new Parry(bob, tomas);
       const lightType = lightInstance.damageType;
       const bobsMitigation =
         bobsParryInstance.config.mitigationFactors[lightType];
-
-      advanceRound(lightInstance, bobsParryInstance);
-      expect(lightInstance.strike.mitigated.mult).toBeFalsy();
+      const continueAdvance = generateCombatAndAdvance([
+        lightInstance,
+        bobsParryInstance,
+      ]);
+      expect(lightInstance.mitigated.mult).toBe(1);
 
       bobsParryInstance.setReady();
       lightInstance.setReady();
 
-      advanceRound(lightInstance, bobsParryInstance);
-      expect(lightInstance.strike.mitigated.mult).toBe(bobsMitigation);
+      continueAdvance();
+      expect(lightInstance.mitigated.mult).toBe(bobsMitigation);
     });
   });
 });

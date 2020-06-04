@@ -1,6 +1,6 @@
 const Engagement = require("../../Engagement/index");
 const basePlayer = require("../../../playerFixtures/tom.json");
-const RoundResolver = require("../../RoundResolver");
+const Combat = require("../../Combat");
 const _ = require("lodash");
 
 let playerID = 0;
@@ -19,6 +19,14 @@ const generatePlayer = () => {
   const clonedPlayer = _.cloneDeep(basePlayer);
   clonedPlayer.name = nameArray[playerID];
   clonedPlayer.isInCombat = () => true;
+  clonedPlayer.hasAttribute = () => true;
+  clonedPlayer.getMaxAttribute = () => 10;
+  clonedPlayer.getAttribute = () => 10;
+  clonedPlayer.equipment = {};
+  clonedPlayer.equipment.get = () => {};
+  clonedPlayer.evaluateOutgoingDamage = () => {};
+  clonedPlayer.evaluateIncomingDamage = () => {};
+  clonedPlayer.lowerAttribute = () => {};
   playerID++;
   clonedPlayer.emit = jest.fn();
   return clonedPlayer;
@@ -36,6 +44,7 @@ const generateEngagement = (combatants) => {
 
 const generateState = (stateOverrides) => {
   const state = {
+    isDebug: true,
     CommandManager: {
       get: () => {},
       find: () => {},
@@ -54,13 +63,30 @@ const generateState = (stateOverrides) => {
 };
 
 const advanceRound = (playerOneCommand, playerTwoCommand) => {
-  const resolutionObj = new RoundResolver([playerTwoCommand, playerOneCommand]);
-  playerOneCommand.preRoundProcess(playerTwoCommand, resolutionObj);
-  playerTwoCommand.preRoundProcess(playerOneCommand, resolutionObj);
+  playerOneCommand.update(playerTwoCommand);
+  playerTwoCommand.update(playerOneCommand);
   playerOneCommand.elapseRounds();
   playerTwoCommand.elapseRounds();
-  playerOneCommand.postRoundProcess(playerTwoCommand, resolutionObj);
-  playerTwoCommand.postRoundProcess(playerOneCommand, resolutionObj);
+  playerOneCommand.compareAndApply(playerTwoCommand);
+  playerTwoCommand.compareAndApply(playerOneCommand);
+};
+
+const generateCombatAndAdvance = (commands, state) => {
+  const players = [];
+  commands.forEach((command) => {
+    command.user.combatData.decision = command;
+    players.push(command.user);
+  });
+  if (!state) {
+    state = generateState();
+  }
+  state.isDebug = true;
+  const [arbitraryPlayer, ...otherPlayers] = players;
+  arbitraryPlayer.combatants = otherPlayers;
+  Combat.updateRound(state, arbitraryPlayer);
+  return () => {
+    Combat.updateRound(state, arbitraryPlayer);
+  };
 };
 
 module.exports = {
@@ -68,4 +94,5 @@ module.exports = {
   generatePlayer,
   generateState,
   advanceRound,
+  generateCombatAndAdvance,
 };

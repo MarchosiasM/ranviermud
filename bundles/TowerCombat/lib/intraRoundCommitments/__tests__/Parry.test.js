@@ -2,7 +2,11 @@ const Light = require("../Light");
 const Heavy = require("../Heavy");
 const Parry = require("../Parry");
 const Guard = require("../Guard");
-const { generatePlayer, advanceRound } = require("../../__tests__/helperFns");
+const {
+  generatePlayer,
+  advanceRound,
+  generateCombatAndAdvance,
+} = require("../../__tests__/helperFns");
 
 describe("Dodge", () => {
   let tomas, bob, parryInstance, bobsGuardInstance;
@@ -28,7 +32,7 @@ describe("Dodge", () => {
       "does not allow a switch if only %p rounds have elapsed",
       (roundsToElapse) => {
         expect(tomas.emit).not.toHaveBeenCalledWith(
-          "dodgeCommitMessage",
+          "lightCommitMessage",
           "light strike"
         );
         for (let i = 0; i < roundsToElapse; i++) {
@@ -47,8 +51,11 @@ describe("Dodge", () => {
       }
     );
     it("allows switch after 2 rounds elapsed", () => {
-      advanceRound(parryInstance, bobsGuardInstance);
-      advanceRound(parryInstance, bobsGuardInstance);
+      const continueAdvance = generateCombatAndAdvance([
+        parryInstance,
+        bobsGuardInstance,
+      ]);
+      continueAdvance(parryInstance, bobsGuardInstance);
       parryInstance.switch("light strike", bob);
       expect(tomas.emit).toHaveBeenCalledWith(
         "commitSwitch",
@@ -64,17 +71,23 @@ describe("Dodge", () => {
   describe("resolve", () => {
     it("advances the 'elapsedRounds' counter on each resolve call", () => {
       expect(parryInstance.elapsedRounds).toEqual(0);
-      advanceRound(parryInstance, bobsGuardInstance);
+      const continueAdvance = generateCombatAndAdvance([
+        parryInstance,
+        bobsGuardInstance,
+      ]);
       expect(parryInstance.elapsedRounds).toEqual(1);
-      advanceRound(parryInstance, bobsGuardInstance);
+      continueAdvance();
       expect(parryInstance.elapsedRounds).toEqual(2);
     });
 
     it("At T-1, emit a message signaling the player they're ready to parry", () => {
-      advanceRound(parryInstance, bobsGuardInstance);
+      const continueAdvance = generateCombatAndAdvance([
+        parryInstance,
+        bobsGuardInstance,
+      ]);
       expect(tomas.emit).not.toHaveBeenCalledWith("parryPreparedMessage", bob);
 
-      advanceRound(parryInstance, bobsGuardInstance);
+      continueAdvance();
       expect(tomas.emit).toHaveBeenCalledWith("parryPreparedMessage", bob);
       expect(parryInstance.parrying).toBeTruthy();
     });
@@ -91,7 +104,7 @@ describe("Dodge", () => {
         bobsAttack.setReady();
         expect(tomas.emit).not.toHaveBeenCalledWith("partialParry", bob);
 
-        advanceRound(parryInstance, bobsAttack);
+        generateCombatAndAdvance([parryInstance, bobsAttack]);
         expect(tomas.emit).toHaveBeenCalledWith("partialParry", bob);
       }
     );
@@ -100,21 +113,27 @@ describe("Dodge", () => {
 
     it.each(attacks)("at T-0, mitigate all", ({ attack }) => {
       const bobsAttack = attack(bob, tomas);
-      bobsAttack.setReady();
 
-      advanceRound(parryInstance, bobsGuardInstance);
+      const continueAdvance = generateCombatAndAdvance([
+        parryInstance,
+        bobsAttack,
+      ]);
       expect(tomas.emit).not.toHaveBeenCalledWith("perfectParry", bob);
 
-      advanceRound(parryInstance, bobsAttack);
+      bobsAttack.setReady();
+      continueAdvance();
       expect(tomas.emit).toHaveBeenCalledWith("perfectParry", bob);
     });
 
     it.each(attacks)("at T+1, mitigate some", ({ attack }) => {
       const bobsAttack = attack(bob, tomas);
-      bobsAttack.setReady();
 
-      advanceRound(parryInstance, bobsGuardInstance);
-      advanceRound(parryInstance, bobsGuardInstance);
+      const continueAdvance = generateCombatAndAdvance([
+        parryInstance,
+        bobsAttack,
+      ]);
+      continueAdvance();
+      bobsAttack.setReady();
       expect(tomas.emit).not.toHaveBeenCalledWith("partialParry", bob);
 
       advanceRound(parryInstance, bobsAttack);

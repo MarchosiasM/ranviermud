@@ -5,21 +5,21 @@ module.exports = {
     function (target) {
       B.sayAt(
         this,
-        `You regard ${target} warily, waiting for a chance to strike.`
+        `You regard ${target.name} warily, waiting for a chance to strike.`
       );
     },
   guardLightMitigate: (state) =>
     function (target) {
       B.sayAt(
         this,
-        `You lean into ${target}'s strike, shrugging off some of the blow.`
+        `You lean into ${target.name}'s strike, shrugging off some of the blow.`
       );
     },
   guardHeavyMitigate: (state) =>
     function (target) {
       B.sayAt(
         this,
-        `You lean into ${target}'s mighty blow, taking the worst of it but preventing some of the pain.`
+        `You lean into ${target.name}'s mighty blow, taking the worst of it but preventing some of the pain.`
       );
     },
   guardDodgeAdvantage: (state) =>

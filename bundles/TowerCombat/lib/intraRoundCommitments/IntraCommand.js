@@ -10,19 +10,22 @@ class IntraCommand {
     this.user = user;
     this.target = target;
     this.elapsedRounds = 0;
+    this.completed = false;
   }
 
   isInstanceOf(string) {
     return string.match(new RegExp(this.type, "gi"));
   }
 
-  preRoundProcess() {}
+  update() {}
 
   elapseRounds(times = 1) {
     this.elapsedRounds += times;
   }
 
-  postRoundProcess() {}
+  commit() {}
+
+  compareAndApply() {}
   /**
    * This funciton reinforces basic rules for the configs. A sanity check
    * against my own carelessness.

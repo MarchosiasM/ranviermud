@@ -12,6 +12,12 @@ const commandTypes = {
   LIGHT: "light strike",
   HEAVY: "heavy strike",
   PARRY: "parry",
+  parry: "PARRY",
+  dodge: "DODGE",
+  guard: "GUARD",
+  probe: "PROBE",
+  "light strike": "LIGHT",
+  "heavy strike": "HEAVY",
 };
 
 const evadableTypes = {

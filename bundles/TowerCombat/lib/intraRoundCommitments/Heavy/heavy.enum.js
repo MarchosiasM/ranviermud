@@ -1,0 +1,10 @@
+const enums = {
+  NEW_HEAVY: "NEW_HEAVY",
+  HEAVY_COMMIT_ERROR: "HEAVY_COMMIT_ERROR",
+  HEAVY_MITIGATION: "HEAVY_MITIGATION",
+  HEAVY_AVOIDED: "HEAVY_AVOIDED",
+};
+
+module.exports = {
+  enums,
+};

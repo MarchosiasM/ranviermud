@@ -24,7 +24,7 @@ const handleIntraCmd = (target, character, commandType) => {
     target = Engagement.chooseCombatant(character);
   }
   character.emit("msgPrepareCmd", commandType);
-  character.emit("prepareCmd", commandType, target);
+  character.emit("attemptSwitch", commandType, target);
 };
 
 module.exports = handleIntraCmd;

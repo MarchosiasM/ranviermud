@@ -6,30 +6,50 @@ const Dodge = require("../lib/intraRoundCommitments/Dodge");
 const Parry = require("../lib/intraRoundCommitments/Parry");
 const Heavy = require("../lib/intraRoundCommitments/Heavy");
 const guardComms = require("./commandSpecific/guardComms");
+const probeComms = require("./commandSpecific/probeComms");
+const dodgeComms = require("./commandSpecific/dodgeComms");
+const lightComms = require("./commandSpecific/lightComms");
+const parryComms = require("./commandSpecific/parryComms");
+const { commandTypes } = require("../lib/intraRoundCommitments/commands.enum");
 
 module.exports = {
   ...guardComms,
-  prepareCmd: (state) =>
+  ...probeComms,
+  ...dodgeComms,
+  ...lightComms,
+  ...parryComms,
+  attemptSwitch: (state) =>
+    function (type, target) {
+      if (!target) Logger.error(`No target found for type ${type}`);
+      if (commandTypes[type]) {
+        this.combatData.decision.switch(type, target);
+        return;
+      }
+      Logger.error(
+        `${this.name} input a command type I couldn't parse. ${type}`
+      );
+    },
+  commitSwitch: (state) =>
     function (type, target) {
       if (!target) Logger.error(`No target found for type ${type}`);
       switch (type) {
-        case "light":
-          this.combatData.decision.switch(new Light(this, target));
+        case commandTypes.LIGHT:
+          this.combatData.decision = new Light(this, target);
           break;
-        case "guard":
-          this.combatData.decision.switch(new Guard(this, target));
+        case commandTypes.GUARD:
+          this.combatData.decision = new Guard(this, target);
           break;
-        case "probe":
-          this.combatData.decision.switch(new Probe(this, target));
+        case commandTypes.DODGE:
+          this.combatData.decision = new Dodge(this, target);
           break;
-        case "dodge":
-          this.combatData.decision.switch(new Dodge(this, target));
+        case commandTypes.PARRY:
+          this.combatData.decision = new Parry(this, target);
           break;
-        case "parry":
-          this.combatData.decision.switch(new Parry(this, target));
+        case commandTypes.HEAVY:
+          this.combatData.decision = new Heavy(this, target);
           break;
-        case "heavy":
-          this.combatData.decision.switch(new Heavy(this, target));
+        case commandTypes.PROBE:
+          this.combatData.decision = new Probe(this, target);
           break;
         default:
           Logger.error(
@@ -53,21 +73,21 @@ module.exports = {
     function (target) {
       B.sayAt(
         this,
-        `You regard ${target} warily, waiting for a chance to strike.`
+        `You regard ${target.name} warily, waiting for a chance to strike.`
       );
     },
   guardLightMitigate: (state) =>
     function (target) {
       B.sayAt(
         this,
-        `You lean into ${target}'s strike, shrugging off some of the blow.`
+        `You lean into ${target.name}'s strike, shrugging off some of the blow.`
       );
     },
   guardHeavyMitigate: (state) =>
     function (target) {
       B.sayAt(
         this,
-        `You lean into ${target}'s mighty blow, taking the worst of it but preventing some of the pain.`
+        `You lean into ${target.name}'s mighty blow, taking the worst of it but preventing some of the pain.`
       );
     },
 };

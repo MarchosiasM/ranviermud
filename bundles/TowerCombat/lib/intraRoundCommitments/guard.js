@@ -2,7 +2,8 @@
 
 const IntraCommand = require("./IntraCommand");
 const { guard } = require("./configuration");
-const { commandTypes } = require("./commands.enum");
+const { commandTypes, damageTypes } = require("./commands.enum");
+const _ = require("lodash");
 
 class Guard extends IntraCommand {
   constructor(user, target) {
@@ -10,41 +11,59 @@ class Guard extends IntraCommand {
     this.user = user;
     this.target = target;
     this.elapsedRounds = 0;
+    this.type = guard.type;
     user.emit("newGuard", target);
   }
 
-  isInstanceOf(string) {
-    return string.match(new RegExp(guard.type, "gi"));
-  }
+  update() {}
 
-  resolve(incomingAction) {
-    const lightMitigationFactor = 0.9;
-    const heavyMitigationFactor = 0.9;
-    switch (incomingAction) {
-      case commandTypes.LIGHT:
-        incomingAction.mitigate(lightMitigationFactor);
-        this.user.emit("guardLightMitigate");
-        break;
-      case commandTypes.HEAVY:
-        incomingAction.mitigate(heavyMitigationFactor, this.config.type);
-        this.user.emit("guardHeavyMitigate");
-        break;
+  compareAndApply(incomingAction) {
+    const { config: guardConfig } = this;
+    const { mitigationFactors } = guardConfig;
+
+    if (this.isMitigatableAndReady(incomingAction)) {
+      incomingAction.mitigate(
+        mitigationFactors[incomingAction.damageType],
+        this
+      );
+
+      switch (incomingAction.config.type) {
+        case commandTypes.LIGHT:
+          this.user.emit("guardLightMitigate");
+
+          break;
+        case commandTypes.HEAVY:
+          this.user.emit("guardHeavyMitigate");
+          break;
+      }
     }
-    this.elapsedRounds++;
   }
 
-  switch(nextAction) {
-    if (this.elapsedRounds > 1 && nextAction.isInstanceOf(commandTypes.DODGE)) {
-      nextAction.gainAdvantage();
+  switch(type, target) {
+    if (this.elapsedRounds >= 1 && type === commandTypes.DODGE) {
+      // TODO: Put advantage on player if switching to dodge!
       this.user.emit("guardDodgeAdvantage");
     }
-    this.user.combatData.decision = nextAction;
+    this.user.emit("commitSwitch", type, target);
   }
 
   get config() {
     return {
       ...guard,
     };
+  }
+
+  switchable() {
+    return true;
+  }
+
+  isMitigatableAndReady(incomingAction) {
+    return (
+      incomingAction &&
+      incomingAction.ready &&
+      incomingAction.damageType === damageTypes.PHYSICAL &&
+      incomingAction.target === this.user
+    );
   }
 }
 

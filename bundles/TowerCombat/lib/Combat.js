@@ -6,6 +6,7 @@ const Parser = require("../../bundle-example-lib/lib/ArgParser");
 const CombatErrors = require("./CombatErrors");
 const { combatOptions } = require("./Combat.enums");
 const Engagement = require("./Engagement");
+const RoundResolver = require("./RoundResolver");
 const Perception = require("./Perception");
 
 const luck = {
@@ -55,7 +56,7 @@ class Combat {
    * @param {Character} attacker
    * @return {boolean}  true if combat actions were performed this round
    */
-  static updateRound(state, primary) {
+  static updateRound(state = {}, primary) {
     if (primary.combatData.killed) {
       // entity was removed from the game but update event was still in flight, ignore it
       return false;
@@ -71,7 +72,7 @@ class Combat {
     const engagement = Engagement.getEngagement(primary);
 
     // cancel if the primary's combat lag hasn't expired yet
-    if (!engagement.lagIsComplete) {
+    if (!engagement.lagIsComplete && !state.isDebug) {
       engagement.reduceLag();
       return false;
     }
@@ -83,7 +84,11 @@ class Combat {
     engagement.completionCheck();
   }
 
-  static resolveRound(engagement) {}
+  static resolveRound(engagement) {
+    Combat.defaultActionSelection(engagement);
+    RoundResolver.compareCards(engagement);
+    RoundResolver.commitCards(engagement);
+  }
 
   static markTime(engagement) {
     engagement.roundStarted = Date.now();
@@ -101,10 +106,12 @@ class Combat {
     return true;
   }
 
-  static defaultActionSelection(combatant) {
-    if (!combatant.combatData.decision) {
-      combatant.combatData.decision = combatOptions.STRIKE;
-      B.sayAt(combatant, "Your instincts lead you to strike!");
+  static defaultActionSelection(engagement) {
+    for (const combatant of engagement.characters) {
+      if (!combatant.combatData.decision) {
+        combatant.combatData.decision = combatOptions.STRIKE;
+        B.sayAt(combatant, "Your instincts lead you to strike!");
+      }
     }
   }
 
@@ -139,108 +146,108 @@ class Combat {
     return luck.CRITFAIL;
   }
 
-  static processOutcome(attacker, target) {
-    const { attackerResult, targetResult } = Combat.compileScores(
-      attacker,
-      target
-    );
-    const attackerPosition = Combat.calculatePosition(
-      attackerResult,
-      targetResult
-    );
-    Combat.resolvePositions(attacker, target, attackerPosition);
-  }
+  // static processOutcome(attacker, target) {
+  //   const { attackerResult, targetResult } = Combat.compileScores(
+  //     attacker,
+  //     target
+  //   );
+  //   const attackerPosition = Combat.calculatePosition(
+  //     attackerResult,
+  //     targetResult
+  //   );
+  //   Combat.resolvePositions(attacker, target, attackerPosition);
+  // }
 
-  static calculatePosition(attackerRes, targetRes) {
-    const attackerSkillRoll = Random.inRange(1, attackerRes.skill);
-    const targetSkillRoll = Random.inRange(1, targetRes.skill);
-    const delta = attackerSkillRoll - targetSkillRoll;
-    let result;
-    result = resultPosition.GR_DISADVANTAGED;
-    if (delta > -66) result = resultPosition.DISADVANTAGED;
-    if (delta > -33) result = resultPosition.NEUTRAL;
-    if (delta > 33) result = resultPosition.ADVANTAGED;
-    if (delta > 66) result = resultPosition.GR_ADVANTAGED;
-    const luckMod = Combat.calculateLuckMod(attackerRes.luck, targetRes.luck);
-    const modifiedResult = resultsMapping[resultsMapping[result] + luckMod];
-    return modifiedResult;
-  }
+  // static calculatePosition(attackerRes, targetRes) {
+  //   const attackerSkillRoll = Random.inRange(1, attackerRes.skill);
+  //   const targetSkillRoll = Random.inRange(1, targetRes.skill);
+  //   const delta = attackerSkillRoll - targetSkillRoll;
+  //   let result;
+  //   result = resultPosition.GR_DISADVANTAGED;
+  //   if (delta > -66) result = resultPosition.DISADVANTAGED;
+  //   if (delta > -33) result = resultPosition.NEUTRAL;
+  //   if (delta > 33) result = resultPosition.ADVANTAGED;
+  //   if (delta > 66) result = resultPosition.GR_ADVANTAGED;
+  //   const luckMod = Combat.calculateLuckMod(attackerRes.luck, targetRes.luck);
+  //   const modifiedResult = resultsMapping[resultsMapping[result] + luckMod];
+  //   return modifiedResult;
+  // }
 
   static calculateLuckMod(attackerLuck, targetLuck) {
     return attackerLuck - targetLuck;
   }
 
-  static resolvePositions(attacker, target, attackerPosition) {
-    switch (attackerPosition) {
-      case resultPosition.NEUTRAL:
-        Combat.resolveNeutralStrike(attacker, target);
-        break;
-      case resultPosition.ADVANTAGED:
-        Combat.resolveAdvStrike(attacker, target);
-        break;
-      case resultPosition.GR_ADVANTAGED:
-        Combat.resolveGrAdvStrike(attacker, target);
-        break;
-      case resultPosition.DISADVANTAGED:
-        Combat.resolveAdvStrike(target, attacker);
-        break;
-      case resultPosition.GR_DISADVANTAGED:
-        Combat.resolveGrAdvStrike(target, attacker);
-        break;
-      default:
-        return null;
-    }
-  }
+  // static resolvePositions(attacker, target, attackerPosition) {
+  //   switch (attackerPosition) {
+  //     case resultPosition.NEUTRAL:
+  //       Combat.resolveNeutralStrike(attacker, target);
+  //       break;
+  //     case resultPosition.ADVANTAGED:
+  //       Combat.resolveAdvStrike(attacker, target);
+  //       break;
+  //     case resultPosition.GR_ADVANTAGED:
+  //       Combat.resolveGrAdvStrike(attacker, target);
+  //       break;
+  //     case resultPosition.DISADVANTAGED:
+  //       Combat.resolveAdvStrike(target, attacker);
+  //       break;
+  //     case resultPosition.GR_DISADVANTAGED:
+  //       Combat.resolveGrAdvStrike(target, attacker);
+  //       break;
+  //     default:
+  //       return null;
+  //   }
+  // }
 
-  static resolveNeutralStrike(attacker, target) {
-    // this has three branches
-    B.sayAt(attacker, "Neutral strike");
-    B.sayAt(target, "Neutral strike");
-    B.sayAt(attacker, "You lash out");
-    const diceRoll = Random.inRange(0, 3);
-    // accidental parry
-    if (diceRoll === 1) {
-      B.sayAt(
-        attacker,
-        `*CLANG!* Your hands sting with the vibration of your weapon as you and ${target.name} deflect each others' blows.`
-      );
-      B.sayAt(
-        target,
-        `*CLANG!* Your hands sting with the vibration of your weapon as you and ${attacker.name} deflect each others' blows.`
-      );
-      return;
-    }
-    // accidental deflection, reduced damage
-    if (diceRoll == 2) {
-      B.sayAt(
-        attacker,
-        `Your attack collides with ${target.name}s, deflecting the shot just so!`
-      );
-      B.sayAt(
-        target,
-        `Your attack collides with ${attacker.name}s, deflecting the shot just so!`
-      );
-      Combat.makeAttack(attacker, target, probabilityMap.SEVENTY_FIVE);
-      Combat.makeAttack(target, attacker, probabilityMap.SEVENTY_FIVE);
-      return;
-    }
-    // full hits
-    Combat.makeAttack(target, attacker);
-    Combat.makeAttack(attacker, target);
-  }
+  // static resolveNeutralStrike(attacker, target) {
+  //   // this has three branches
+  //   B.sayAt(attacker, "Neutral strike");
+  //   B.sayAt(target, "Neutral strike");
+  //   B.sayAt(attacker, "You lash out");
+  //   const diceRoll = Random.inRange(0, 3);
+  //   // accidental parry
+  //   if (diceRoll === 1) {
+  //     B.sayAt(
+  //       attacker,
+  //       `*CLANG!* Your hands sting with the vibration of your weapon as you and ${target.name} deflect each others' blows.`
+  //     );
+  //     B.sayAt(
+  //       target,
+  //       `*CLANG!* Your hands sting with the vibration of your weapon as you and ${attacker.name} deflect each others' blows.`
+  //     );
+  //     return;
+  //   }
+  //   // accidental deflection, reduced damage
+  //   if (diceRoll == 2) {
+  //     B.sayAt(
+  //       attacker,
+  //       `Your attack collides with ${target.name}s, deflecting the shot just so!`
+  //     );
+  //     B.sayAt(
+  //       target,
+  //       `Your attack collides with ${attacker.name}s, deflecting the shot just so!`
+  //     );
+  //     Combat.makeAttack(attacker, target, probabilityMap.SEVENTY_FIVE);
+  //     Combat.makeAttack(target, attacker, probabilityMap.SEVENTY_FIVE);
+  //     return;
+  //   }
+  //   // full hits
+  //   Combat.makeAttack(target, attacker);
+  //   Combat.makeAttack(attacker, target);
+  // }
 
-  static resolveAdvStrike(attacker, target) {
-    B.sayAt(attacker, "You make an advantaged hit");
-    B.sayAt(target, "You receive an advantaged hit");
-    Combat.makeAttack(attacker, target);
-    Combat.makeAttack(target, attacker, probabilityMap.SEVENTY_FIVE);
-  }
+  // static resolveAdvStrike(attacker, target) {
+  //   B.sayAt(attacker, "You make an advantaged hit");
+  //   B.sayAt(target, "You receive an advantaged hit");
+  //   Combat.makeAttack(attacker, target);
+  //   Combat.makeAttack(target, attacker, probabilityMap.SEVENTY_FIVE);
+  // }
 
-  static resolveGrAdvStrike(attacker, target) {
-    B.sayAt(attacker, "You make a greatly advantaged hit");
-    B.sayAt(target, "You receive a greatly advantaged hit");
-    Combat.makeAttack(attacker, target);
-  }
+  // static resolveGrAdvStrike(attacker, target) {
+  //   B.sayAt(attacker, "You make a greatly advantaged hit");
+  //   B.sayAt(target, "You receive a greatly advantaged hit");
+  //   Combat.makeAttack(attacker, target);
+  // }
 
   /**
    * Actually apply some damage from an attacker to a target
@@ -379,6 +386,51 @@ class Combat {
       ? attacker.getAttribute("strength")
       : attacker.level;
     return Math.round((amount / 3.5) * speed);
+  }
+
+  static findCombatant(attacker, search) {
+    if (!search.length) {
+      return null;
+    }
+
+    let possibleTargets = [...attacker.room.npcs];
+    if (attacker.getMeta("pvp")) {
+      possibleTargets = [...possibleTargets, ...attacker.room.players];
+    }
+
+    const target = Parser.parseDot(search, possibleTargets);
+
+    if (!target) {
+      return null;
+    }
+
+    if (target === attacker) {
+      throw new CombatErrors.CombatSelfError(
+        "You smack yourself in the face. Ouch!"
+      );
+    }
+
+    if (!target.hasBehavior("combat")) {
+      throw new CombatErrors.CombatPacifistError(
+        `${target.name} is a pacifist and will not fight you.`,
+        target
+      );
+    }
+
+    if (!target.hasAttribute("health")) {
+      throw new CombatErrors.CombatInvalidTargetError(
+        "You can't attack that target"
+      );
+    }
+
+    if (!target.isNpc && !target.getMeta("pvp")) {
+      throw new CombatErrors.CombatNonPvpError(
+        `${target.name} has not opted into PvP.`,
+        target
+      );
+    }
+
+    return target;
   }
 }
 

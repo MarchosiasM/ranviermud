@@ -9,10 +9,23 @@ class IntraCommand {
     this.enforceConfig();
     this.user = user;
     this.target = target;
+    this.elapsedRounds = 0;
+    this.completed = false;
   }
 
-  resolve() {}
+  isInstanceOf(string) {
+    return string.match(new RegExp(this.type, "gi"));
+  }
 
+  update() {}
+
+  elapseRounds(times = 1) {
+    this.elapsedRounds += times;
+  }
+
+  commit() {}
+
+  compareAndApply() {}
   /**
    * This funciton reinforces basic rules for the configs. A sanity check
    * against my own carelessness.
@@ -60,6 +73,10 @@ class IntraCommand {
     return false;
   }
 
+  get damageType() {
+    return null;
+  }
+
   get config() {
     return {
       castTime: 2,
@@ -71,6 +88,10 @@ class IntraCommand {
       perceptMod: 1, // 0 to 1, 1 being the most perceptive, 0 being unable to perceive
       perceptThreshold: 10, // 0 to 100, 100 being totally unperceptable
     };
+  }
+
+  setReady() {
+    this.elapsedRounds === this.config.castTime;
   }
 }
 

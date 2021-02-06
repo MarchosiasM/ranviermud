@@ -2,37 +2,53 @@
 
 const IntraCommand = require("./IntraCommand");
 const { probe } = require("./configuration");
-const { commandTypes } = require("./commands.enum");
-const Random = require("rando-js");
+const { Random } = require("rando-js");
+
+const bonusFollowUps = {
+  LIGHT: "LIGHT",
+  HEAVY: "HEAVY",
+  PARRY: "PARRY",
+};
 
 class Probe extends IntraCommand {
   constructor(user, target) {
     super(user, target);
     this.user = user;
     this.target = target;
+    this.elapsedRounds = 0;
+    user.emit("newProbe", target);
   }
 
   isInstanceOf(string) {
     return string.match(new RegExp(probe.type, "gi"));
   }
 
-  resolve(incomingAction) {
-    this.elapsedRounds++;
-    if (this.elapsedRounds > 1) {
+  // end of rnd 0
+  update() {
+    const { elapsedRounds } = this;
+    if (elapsedRounds >= probe.triggerAdvantageOnTurn) {
       this.rollAdvantageChance();
     }
   }
 
-  switch(nextAction) {
-    if (this.elapsedRounds > 1 && nextAction.isInstanceOf(commandTypes.DODGE)) {
-      nextAction.gainAdvantage();
+  // beginning of rnd 1
+  compareAndApply() {}
+
+  switch(type, target) {
+    if (this.elapsedRounds > 1 && bonusFollowUps[type]) {
+      type.elapseRounds();
     }
+    this.user.emit("commitSwitch", type, target);
   }
 
   rollAdvantageChance() {
     if (Random.inRange(0, 10) === 10) {
-      this.user.emit("probeGainAdvantage", this.target);
+      this.user.emit("probeGainAdvantage");
     }
+  }
+
+  elapseAction(times = 1) {
+    this.elapsedRounds += times;
   }
 
   get config() {

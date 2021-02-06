@@ -32,12 +32,6 @@ class Light extends IntraCommand {
     }
   }
 
-  elapseRounds(times = 1) {
-    this.elapsedRounds += times;
-  }
-
-  compareAndApply(incomingAction) {}
-
   commit() {
     if (!this.ready) return;
     if (this.mitigated.avoided) {
@@ -56,7 +50,7 @@ class Light extends IntraCommand {
 
   switch(type, target) {
     if (!this.switchable) {
-      this.user.emit("lightCommitMessage", type);
+      this.user.emit("lightCommitError", type);
       return;
     }
     this.user.emit("commitSwitch", type, target);

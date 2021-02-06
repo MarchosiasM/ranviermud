@@ -32,7 +32,7 @@ describe("Dodge", () => {
       "does not allow a switch if only %p rounds have elapsed",
       (roundsToElapse) => {
         expect(tomas.emit).not.toHaveBeenCalledWith(
-          "dodgeCommitMessage",
+          "dodgeCommitError",
           "light strike"
         );
         for (let i = 0; i < roundsToElapse; i++) {
@@ -46,7 +46,7 @@ describe("Dodge", () => {
           bob
         );
         expect(tomas.emit).toHaveBeenCalledWith(
-          "dodgeCommitMessage",
+          "dodgeCommitError",
           "light strike"
         );
       }
@@ -66,7 +66,7 @@ describe("Dodge", () => {
         bob
       );
       expect(tomas.emit).not.toHaveBeenCalledWith(
-        "dodgeCommitMessage",
+        "dodgeCommitError",
         "light strike"
       );
     });

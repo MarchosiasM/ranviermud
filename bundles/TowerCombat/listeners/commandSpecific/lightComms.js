@@ -4,7 +4,7 @@ const {
 } = require("../../lib/intraRoundCommitments/commands.enum");
 
 module.exports = {
-  lightCommitMessage: (state) =>
+  lightCommitError: (state) =>
     function (target) {
       B.sayAt(this, `Your weapon is already mid-swing!`);
       // TODO: create advantage eff and insert it on user here

@@ -20,7 +20,7 @@ module.exports = {
         They're off-balance!`
       );
     },
-  dodgeCommitMessage: (state) =>
+  dodgeCommitError: (state) =>
     function (type) {
       B.sayAt(
         this,

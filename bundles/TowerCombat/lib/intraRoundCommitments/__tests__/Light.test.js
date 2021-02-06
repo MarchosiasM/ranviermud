@@ -32,7 +32,7 @@ describe("Light", () => {
       "does not allow a switch if only %p rounds have elapsed",
       (roundsToElapse) => {
         expect(tomas.emit).not.toHaveBeenCalledWith(
-          "lightCommitMessage",
+          "lightCommitError",
           "light strike"
         );
 
@@ -49,7 +49,7 @@ describe("Light", () => {
         );
 
         expect(tomas.emit).toHaveBeenCalledWith(
-          "lightCommitMessage",
+          "lightCommitError",
           "light strike"
         );
       }
@@ -64,10 +64,7 @@ describe("Light", () => {
       continueAdvance();
       lightInstance.switch("dodge", bob);
       expect(tomas.emit).toHaveBeenCalledWith("commitSwitch", "dodge", bob);
-      expect(tomas.emit).not.toHaveBeenCalledWith(
-        "lightCommitMessage",
-        "dodge"
-      );
+      expect(tomas.emit).not.toHaveBeenCalledWith("lightCommitError", "dodge");
     });
   });
   describe("compareAndApply", () => {

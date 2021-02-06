@@ -3,7 +3,6 @@
 const IntraCommand = require("./IntraCommand");
 const config = require("./configuration");
 const { commandTypes, damageTypes, layers } = require("./commands.enum");
-const _ = require("lodash");
 
 const { dodge } = config;
 
@@ -39,7 +38,7 @@ class Dodge extends IntraCommand {
 
   switch(type, target) {
     if (!this.switchable) {
-      this.user.emit("dodgeCommitMessage", type);
+      this.user.emit("dodgeCommitError", type);
       return;
     }
     this.user.emit("commitSwitch", type, target);

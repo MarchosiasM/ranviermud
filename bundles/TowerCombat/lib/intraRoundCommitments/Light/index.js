@@ -6,7 +6,12 @@ const { lightEmits } = require("./light.enum");
 const perceptionEnums = require("../../Perception/percept.enum");
 
 const perceptionMap = {
-  [perceptionEnums.SUCCESS]: ({ name }) => `${name} prepares a swift attack!`,
+  [perceptionEnums.SUCCESS]: {
+    0: ({ name }) => `${name} prepares a swift attack.`,
+    1: ({ name }) => `${name} begins to strike swiftly.`,
+    2: ({ name }) => `${name} is in the middle of a swift attack!`,
+    3: ({ name }) => `${name} is executing a swift attack!`,
+  },
   [perceptionEnums.PARTIAL_SUCCESS]: ({ name }) =>
     `${name} takes an aggressive stance!`,
 };
@@ -77,7 +82,27 @@ class Light extends IntraCommand {
   }
 
   percept(outcome) {
-    return perceptionMap[outcome];
+    if (perceptionEnums.SUCCESS === outcome) {
+      switch (this.elapsedRounds) {
+        case 0:
+          return perceptionMap[outcome][this.elapsedRounds]({
+            name: this.user.name,
+          });
+        case 1:
+          return perceptionMap[outcome][this.elapsedRounds]({
+            name: this.user.name,
+          });
+        case 2:
+          return perceptionMap[outcome][this.elapsedRounds]({
+            name: this.user.name,
+          });
+        case 3:
+          return perceptionMap[outcome][this.elapsedRounds]({
+            name: this.user.name,
+          });
+      }
+    }
+    return perceptionMap[outcome]({ name: this.user.name });
   }
 }
 

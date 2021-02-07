@@ -9,6 +9,7 @@ const {
 } = require("../../../__tests__/helperFns");
 const { lightEmits } = require("../light.enum");
 const { commandTypes } = require("../../commands.enum");
+const perceptionEnums = require("../../../Perception/percept.enum");
 
 describe("Light", () => {
   let tomas, bob, lightInstance, bobsGuardInstance;
@@ -154,6 +155,50 @@ describe("Light", () => {
 
       continueAdvance();
       expect(lightInstance.mitigated.mult).toBe(bobsMitigation);
+    });
+  });
+  describe("perception", () => {
+    it("returns correct string in a success scenario", () => {
+      const bobsParryInstance = new Parry(bob, tomas);
+      expect(lightInstance.percept(perceptionEnums.SUCCESS)).toContain(
+        "prepares a swift attack"
+      );
+      const continueAdvance = generateCombatAndAdvance([
+        lightInstance,
+        bobsParryInstance,
+      ]);
+      expect(lightInstance.percept(perceptionEnums.SUCCESS)).toContain(
+        "begins to strike swiftly"
+      );
+      continueAdvance();
+      expect(lightInstance.percept(perceptionEnums.SUCCESS)).toContain(
+        "is in the middle of a swift attack"
+      );
+      continueAdvance();
+      expect(lightInstance.percept(perceptionEnums.SUCCESS)).toContain(
+        "is executing a swift attack"
+      );
+    });
+    it("returns the correct string in a partial success scenario", () => {
+      const bobsParryInstance = new Parry(bob, tomas);
+      expect(lightInstance.percept(perceptionEnums.PARTIAL_SUCCESS)).toContain(
+        "takes an aggressive stance"
+      );
+      const continueAdvance = generateCombatAndAdvance([
+        lightInstance,
+        bobsParryInstance,
+      ]);
+      expect(lightInstance.percept(perceptionEnums.PARTIAL_SUCCESS)).toContain(
+        "takes an aggressive stance"
+      );
+      continueAdvance();
+      expect(lightInstance.percept(perceptionEnums.PARTIAL_SUCCESS)).toContain(
+        "takes an aggressive stance"
+      );
+      continueAdvance();
+      expect(lightInstance.percept(perceptionEnums.PARTIAL_SUCCESS)).toContain(
+        "takes an aggressive stance"
+      );
     });
   });
 });

@@ -1,7 +1,7 @@
 "use strict";
 
-const IntraCommand = require("./IntraCommand");
-const { probe } = require("./configuration");
+const IntraCommand = require("../IntraCommand");
+const { probe } = require("../configuration");
 const { Random } = require("rando-js");
 
 const bonusFollowUps = {

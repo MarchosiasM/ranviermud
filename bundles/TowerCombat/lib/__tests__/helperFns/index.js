@@ -16,6 +16,7 @@ const nameArray = [
   "Spiderman",
 ];
 const generatePlayer = () => {
+  const emit = jest.fn();
   const clonedPlayer = _.cloneDeep(basePlayer);
   clonedPlayer.name = nameArray[playerID];
   clonedPlayer.isInCombat = () => true;
@@ -29,15 +30,15 @@ const generatePlayer = () => {
   clonedPlayer.evaluateIncomingDamage = () => {};
   clonedPlayer.lowerAttribute = () => {};
   playerID++;
-  clonedPlayer.emit = jest.fn();
-  return clonedPlayer;
+  clonedPlayer.emit = emit;
+  return [clonedPlayer, emit];
 };
 
 const generateEngagement = (combatants) => {
-  const loopingPlayer = generatePlayer();
+  const [loopingPlayer] = generatePlayer();
   loopingPlayer.combatants = new Set();
   for (let i = 0; i < combatants; i++) {
-    loopingPlayer.combatants.add(generatePlayer());
+    loopingPlayer.combatants.add(...generatePlayer());
   }
   const engagement = new Engagement(loopingPlayer);
   return engagement;

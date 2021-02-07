@@ -1,16 +1,15 @@
-const Probe = require("../Probe");
-const Light = require("../Light");
+const Probe = require("../index");
+const Light = require("../../Light");
 const {
   generatePlayer,
   generateCombatAndAdvance,
-} = require("../../__tests__/helperFns");
+} = require("../../../__tests__/helperFns");
 
 describe("Probe", () => {
   let tomas, bob, probeInstance, bobsLightInstance;
   beforeEach(() => {
-    tomas = generatePlayer();
-    tomas.emit = jest.fn();
-    bob = generatePlayer();
+    [tomas] = generatePlayer();
+    [bob] = generatePlayer();
     probeInstance = new Probe(tomas, bob);
     bobsLightInstance = new Light(bob, tomas);
   });

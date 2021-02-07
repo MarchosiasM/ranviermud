@@ -13,9 +13,8 @@ const {
 describe("Heavy", () => {
   let tomas, bob, heavyInstance, bobsGuardInstance;
   beforeEach(() => {
-    tomas = generatePlayer();
-    tomas.emit = jest.fn();
-    bob = generatePlayer();
+    [tomas] = generatePlayer();
+    [bob] = generatePlayer();
     heavyInstance = new Heavy(tomas, bob);
     bobsGuardInstance = new Guard(bob, tomas);
   });

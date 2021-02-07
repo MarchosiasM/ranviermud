@@ -13,9 +13,8 @@ const { commandTypes } = require("../../commands.enum");
 describe("Light", () => {
   let tomas, bob, lightInstance, bobsGuardInstance;
   beforeEach(() => {
-    tomas = generatePlayer();
-    tomas.emit = jest.fn();
-    bob = generatePlayer();
+    [tomas] = generatePlayer();
+    [bob] = generatePlayer();
     lightInstance = new Light(tomas, bob);
     bobsGuardInstance = new Guard(bob, tomas);
   });

@@ -1,48 +1,42 @@
 // const Perception = require('../index')
 const Engagement = require("../../Engagement");
-const PlayerOne = require("../../../playerFixtures/tom.json");
-const _ = require("lodash");
 const Guard = require("../../intraRoundCommitments/Guard");
 const Perception = require("../index");
 const perceptEmit = require("../percept.enum");
+const { generatePlayer } = require("../../__tests__/helperFns/index");
 
 describe("Perception", () => {
-  const playerOne = PlayerOne;
-  const playerTwo = _.cloneDeep(PlayerOne);
-  playerOne.emit = jest.fn();
-  playerTwo.emit = jest.fn();
-  playerOne.combatants = new Set();
-  playerOne.combatants.add(playerTwo);
-  playerOne.combatData.decision = new Guard(playerOne, playerTwo);
-  playerTwo.combatData.decision = new Guard(playerTwo, playerOne);
-  const engagement = new Engagement(playerOne);
+  const [tomas, tomasEmit] = generatePlayer();
+  const [bob] = generatePlayer();
+  tomas.combatants = new Set();
+  tomas.combatants.add(bob);
+  tomas.combatData.decision = new Guard(tomas, bob);
+  bob.combatData.decision = new Guard(bob, tomas);
+  const engagement = new Engagement(tomas);
   it("On a 1, emits a crit fail", () => {
     Perception.rollDice = jest.fn(() => 1);
     Perception.perceptionCheck(engagement);
 
-    expect(playerOne.emit).toHaveBeenCalledWith(
-      perceptEmit.CRITICAL_FAILURE,
-      playerTwo
-    );
+    expect(tomasEmit).toHaveBeenCalledWith(perceptEmit.CRITICAL_FAILURE, bob);
   });
   it("On a 100, emits a success", () => {
-    const threshold = grabPlayersActionPerceptionThreshold(playerTwo);
+    const threshold = grabPlayersActionPerceptionThreshold(bob);
     Perception.rollDice = jest.fn(() => threshold + 1);
     Perception.perceptionCheck(engagement);
-    expect(playerOne.emit).toHaveBeenCalledWith(
+    expect(tomasEmit).toHaveBeenCalledWith(
       perceptEmit.SUCCESS,
-      playerTwo.combatData.decision,
-      playerTwo
+      bob.combatData.decision,
+      bob
     );
   });
   it("Just under the threshold, returns a partial success", () => {
-    const threshold = grabPlayersActionPerceptionThreshold(playerTwo);
+    const threshold = grabPlayersActionPerceptionThreshold(bob);
     Perception.rollDice = jest.fn(() => threshold - 1);
     Perception.perceptionCheck(engagement);
-    expect(playerOne.emit).toHaveBeenCalledWith(
+    expect(tomasEmit).toHaveBeenCalledWith(
       perceptEmit.PARTIAL_SUCCESS,
-      playerTwo.combatData.decision,
-      playerTwo
+      bob.combatData.decision,
+      bob
     );
   });
 });

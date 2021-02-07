@@ -7,8 +7,8 @@ const Engagement = require("../../Engagement");
 describe("roundResolver", () => {
   let tomsLight, bobsGuard, tom, bob, theirEngagement;
   beforeEach(() => {
-    tom = generatePlayer();
-    bob = generatePlayer();
+    let [tom] = generatePlayer();
+    let [bob] = generatePlayer();
     tomsLight = new Light(tom, bob);
     bobsGuard = new Guard(bob, tom);
     tom.combatants = [bob];

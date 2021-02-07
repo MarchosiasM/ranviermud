@@ -11,9 +11,8 @@ const {
 describe("Dodge", () => {
   let tomas, bob, parryInstance, bobsGuardInstance;
   beforeEach(() => {
-    tomas = generatePlayer();
-    tomas.emit = jest.fn();
-    bob = generatePlayer();
+    [tomas] = generatePlayer();
+    [bob] = generatePlayer();
     parryInstance = new Parry(tomas, bob);
     bobsGuardInstance = new Guard(bob, tomas);
   });

@@ -15,14 +15,18 @@ describe("Perception", () => {
   const engagement = new Engagement(tomas);
   it("On a 1, emits a crit fail", () => {
     Perception.rollDice = jest.fn(() => 1);
-    Perception.perceptionCheck(engagement);
+    Perception.evaluateEngagement(engagement);
 
-    expect(tomasEmit).toHaveBeenCalledWith(perceptEmit.CRITICAL_FAILURE, bob);
+    expect(tomasEmit).toHaveBeenCalledWith(
+      perceptEmit.CRITICAL_FAILURE,
+      bob.combatData.decision,
+      bob
+    );
   });
   it("On a 100, emits a success", () => {
     const threshold = grabPlayersActionPerceptionThreshold(bob);
     Perception.rollDice = jest.fn(() => threshold + 1);
-    Perception.perceptionCheck(engagement);
+    Perception.evaluateEngagement(engagement);
     expect(tomasEmit).toHaveBeenCalledWith(
       perceptEmit.SUCCESS,
       bob.combatData.decision,
@@ -32,7 +36,7 @@ describe("Perception", () => {
   it("Just under the threshold, returns a partial success", () => {
     const threshold = grabPlayersActionPerceptionThreshold(bob);
     Perception.rollDice = jest.fn(() => threshold - 1);
-    Perception.perceptionCheck(engagement);
+    Perception.evaluateEngagement(engagement);
     expect(tomasEmit).toHaveBeenCalledWith(
       perceptEmit.PARTIAL_SUCCESS,
       bob.combatData.decision,

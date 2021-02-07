@@ -12,7 +12,7 @@ class Perception {
    * awareness.
    * @param {Engagement} engagement The current engagement
    */
-  static perceptionCheck(engagement) {
+  static evaluateEngagement(engagement) {
     const tuples = engagement.getTuples;
     if (!tuples.length) return false;
     for (const duo of tuples) {
@@ -60,7 +60,11 @@ class Perception {
           opposition
         );
       } else if (perceptRoll <= Math.ceil(oppositeThreshold * 0.1)) {
-        character.emit(perceptEmit.CRITICAL_FAILURE, opposition);
+        character.emit(
+          perceptEmit.CRITICAL_FAILURE,
+          oppositeDecision,
+          opposition
+        );
       }
     }
   }

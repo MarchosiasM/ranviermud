@@ -17,8 +17,9 @@ const specificPercepMap = {
   [commandTypes.GUARD]: ({ name, his }) =>
     `${name} has assumed a neutral stance, biding ${his} time.`,
   [commandTypes.LIGHT]: ({ name }) => `${name} is prepared to strike!`,
-  [commandTypes.HEAVY]: ({ name }) => `${name} is prepared to strike!`,
-  [commandTypes.DODGE]: ({ name }) => `${name} !`,
+  [commandTypes.HEAVY]: ({ name }) => `${name} is winding up for a huge blow!`,
+  [commandTypes.DODGE]: ({ name, his }) =>
+    `${name} looks light on ${his} feet!`,
 };
 
 module.exports = {
@@ -36,7 +37,7 @@ module.exports = {
   partialPerceptSuccess: (state) =>
     function (decision, opposition) {
       const { config } = decision;
-      if (generalPercepMap[config.perceiveAs]) {
+      if (config && generalPercepMap[config.perceiveAs]) {
         B.sayAt(this, generalPercepMap[config.perceiveAs](opposition));
         return;
       }

@@ -2,7 +2,7 @@ const Heavy = require("..");
 const Guard = require("../../Guard");
 const Parry = require("../../Parry");
 const Dodge = require("../../Dodge");
-const { enums } = require("../heavy.enum");
+const { heavyEmits } = require("../heavy.enum");
 const { commandTypes } = require("../../commands.enum");
 const {
   generatePlayer,
@@ -20,7 +20,7 @@ describe("Heavy", () => {
     bobsGuardInstance = new Guard(bob, tomas);
   });
   it("triggers the NEW_HEAVY event when instantiated", () => {
-    expect(tomas.emit).toHaveBeenCalledWith(enums.NEW_HEAVY, bob);
+    expect(tomas.emit).toHaveBeenCalledWith(heavyEmits.NEW_HEAVY, bob);
   });
 
   it("is recognized as an instance of itself", () => {
@@ -34,7 +34,7 @@ describe("Heavy", () => {
       "does not allow a switch if only %p rounds have elapsed",
       (roundsToElapse) => {
         expect(tomas.emit).not.toHaveBeenCalledWith(
-          enums.HEAVY_COMMIT_ERROR,
+          heavyEmits.HEAVY_COMMIT_ERROR,
           commandTypes.HEAVY
         );
 
@@ -51,7 +51,7 @@ describe("Heavy", () => {
         );
 
         expect(tomas.emit).toHaveBeenCalledWith(
-          enums.HEAVY_COMMIT_ERROR,
+          heavyEmits.HEAVY_COMMIT_ERROR,
           commandTypes.HEAVY
         );
       }
@@ -73,7 +73,7 @@ describe("Heavy", () => {
         bob
       );
       expect(tomas.emit).not.toHaveBeenCalledWith(
-        enums.HEAVY_COMMIT_ERROR,
+        heavyEmits.HEAVY_COMMIT_ERROR,
         commandTypes.DODGE
       );
     });

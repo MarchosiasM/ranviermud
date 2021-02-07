@@ -1,0 +1,10 @@
+const lightEmits = {
+  NEW_LIGHT: "NEW_LIGHT",
+  LIGHT_COMMIT_ERROR: "LIGHT_COMMIT_ERROR",
+  LIGHT_MITIGATION: "LIGHT_MITIGATION",
+  LIGHT_AVOIDED: "LIGHT_AVOIDED",
+};
+
+module.exports = {
+  lightEmits,
+};

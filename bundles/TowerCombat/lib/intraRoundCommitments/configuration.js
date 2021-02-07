@@ -97,6 +97,7 @@ module.exports = {
     perceiveAs: perceptionTypes.ATTACK,
     perceptMod: 0.2,
     perceptThreshold: 10,
+    baseDamage: 300,
     damaging: {
       type: damageTypes.PHYSICAL,
     },

@@ -1,4 +1,4 @@
-const enums = {
+const heavyEmits = {
   NEW_HEAVY: "NEW_HEAVY",
   HEAVY_COMMIT_ERROR: "HEAVY_COMMIT_ERROR",
   HEAVY_MITIGATION: "HEAVY_MITIGATION",
@@ -6,5 +6,5 @@ const enums = {
 };
 
 module.exports = {
-  enums,
+  heavyEmits,
 };

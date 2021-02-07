@@ -1,5 +1,6 @@
-const { perceptionTypes } = require("./commands.enum");
+const { perceptionTypes } = require("../commands.enum");
 const { Player } = require("ranvier");
+const { Damage } = require("ranvier");
 
 class IntraCommand {
   constructor(user, target) {
@@ -22,8 +23,6 @@ class IntraCommand {
   elapseRounds(times = 1) {
     this.elapsedRounds += times;
   }
-
-  commit() {}
 
   compareAndApply() {}
   /**
@@ -86,8 +85,25 @@ class IntraCommand {
       disruptive: 0, // 0 to
       perceiveAs: perceptionTypes.DEFENSE,
       perceptMod: 1, // 0 to 1, 1 being the most perceptive, 0 being unable to perceive
-      perceptThreshold: 10, // 0 to 100, 100 being totally unperceptable
+      perceptThreshold: 10, // 0 to 100, 100 being totally unperceptable,
+      baseDamage: 1,
     };
+  }
+
+  commit() {
+    if (!this.ready) return;
+    if (this.mitigated.avoided) {
+      return;
+    }
+    const mod = this.mitigated.mult;
+    let amount = this.config.baseDamage;
+    if (mod) {
+      amount = Math.ceil(amount * mod);
+    }
+    const weapon = this.user.equipment.get("wield");
+    const damage = new Damage("health", amount, this.user, weapon || this.user);
+    damage.commit(this.target);
+    this.completed = true;
   }
 
   setReady() {

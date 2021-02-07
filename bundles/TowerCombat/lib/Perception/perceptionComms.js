@@ -2,7 +2,8 @@ const { Broadcast: B, Logger } = require("ranvier");
 const {
   commandTypes,
   layers,
-} = require("../lib/intraRoundCommitments/commands.enum");
+} = require("../intraRoundCommitments/commands.enum");
+const perceptEmit = require("./percept.enum");
 
 const generalPercepMap = {
   [layers.OFFENSE]: ({ name }) => `${name} has taken an aggressive stance.`,
@@ -23,7 +24,7 @@ const specificPercepMap = {
 };
 
 module.exports = {
-  perceptSuccess: (state) =>
+  [perceptEmit.SUCCESS]: (state) =>
     function (decision, opposition) {
       const { config } = decision;
       if (specificPercepMap[config.type]) {
@@ -34,7 +35,7 @@ module.exports = {
         `Failed a type check, decision type ${config.type}: perceiveAs: ${config.perceiveAs}`
       );
     },
-  partialPerceptSuccess: (state) =>
+  [perceptEmit.PARTIAL_SUCCESS]: (state) =>
     function (decision, opposition) {
       const { config } = decision;
       if (config && generalPercepMap[config.perceiveAs]) {
@@ -45,7 +46,7 @@ module.exports = {
         `Failed a type check, decision type ${config.type}: perceiveAs: ${config.perceiveAs}`
       );
     },
-  criticalPerceptFailure: (state) =>
+  [perceptEmit.CRITICAL_FAILURE]: (state) =>
     function (decision, opposition) {
       const { config } = decision;
       B.sayAt(this, generalPercepMap[config.perceiveAs](opposition));

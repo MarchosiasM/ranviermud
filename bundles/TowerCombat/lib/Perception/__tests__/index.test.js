@@ -4,6 +4,7 @@ const PlayerOne = require("../../../playerFixtures/tom.json");
 const _ = require("lodash");
 const Guard = require("../../intraRoundCommitments/Guard");
 const Perception = require("../index");
+const perceptEmit = require("../percept.enum");
 
 describe("Perception", () => {
   const playerOne = PlayerOne;
@@ -20,7 +21,7 @@ describe("Perception", () => {
     Perception.perceptionCheck(engagement);
 
     expect(playerOne.emit).toHaveBeenCalledWith(
-      "criticalPerceptFailure",
+      perceptEmit.CRITICAL_FAILURE,
       playerTwo
     );
   });
@@ -29,7 +30,7 @@ describe("Perception", () => {
     Perception.rollDice = jest.fn(() => threshold + 1);
     Perception.perceptionCheck(engagement);
     expect(playerOne.emit).toHaveBeenCalledWith(
-      "perceptSuccess",
+      perceptEmit.SUCCESS,
       playerTwo.combatData.decision,
       playerTwo
     );
@@ -39,7 +40,7 @@ describe("Perception", () => {
     Perception.rollDice = jest.fn(() => threshold - 1);
     Perception.perceptionCheck(engagement);
     expect(playerOne.emit).toHaveBeenCalledWith(
-      "partialPerceptSuccess",
+      perceptEmit.PARTIAL_SUCCESS,
       playerTwo.combatData.decision,
       playerTwo
     );

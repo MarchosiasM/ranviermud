@@ -3,6 +3,13 @@
 const IntraCommand = require("../IntraCommand");
 const { light } = require("../configuration");
 const { lightEmits } = require("./light.enum");
+const perceptionEnums = require("../../Perception/percept.enum");
+
+const perceptionMap = {
+  [perceptionEnums.SUCCESS]: ({ name }) => `${name} prepares a swift attack!`,
+  [perceptionEnums.PARTIAL_SUCCESS]: ({ name }) =>
+    `${name} takes an aggressive stance!`,
+};
 
 class Light extends IntraCommand {
   constructor(user, target) {
@@ -67,6 +74,10 @@ class Light extends IntraCommand {
     // debug command for testing
     this.elapsedRounds = this.config.castTime;
     this.ready = true;
+  }
+
+  percept(outcome) {
+    return perceptionMap[outcome];
   }
 }
 

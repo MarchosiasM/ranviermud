@@ -1,6 +1,7 @@
 "use strict";
 
 const { Random } = require("rando-js");
+const perceptEmit = require("./percept.enum");
 
 /**
  * Manages perception checks in an engagement
@@ -51,11 +52,15 @@ class Perception {
       const oppositeThreshold = oppositeDecision.config.perceptThreshold;
 
       if (perceptRoll > oppositeThreshold) {
-        character.emit("perceptSuccess", oppositeDecision, opposition);
+        character.emit(perceptEmit.SUCCESS, oppositeDecision, opposition);
       } else if (perceptRoll > oppositeThreshold * 0.5) {
-        character.emit("partialPerceptSuccess", oppositeDecision, opposition);
+        character.emit(
+          perceptEmit.PARTIAL_SUCCESS,
+          oppositeDecision,
+          opposition
+        );
       } else if (perceptRoll <= Math.ceil(oppositeThreshold * 0.1)) {
-        character.emit("criticalPerceptFailure", opposition);
+        character.emit(perceptEmit.CRITICAL_FAILURE, opposition);
       }
     }
   }

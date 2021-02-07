@@ -3,7 +3,7 @@
 const IntraCommand = require("../IntraCommand");
 const { heavy } = require("../configuration");
 const { damageTypes } = require("../commands.enum");
-const { enums } = require("./heavy.enum");
+const { heavyEmits } = require("./heavy.enum");
 
 class Heavy extends IntraCommand {
   constructor(user, target) {
@@ -19,7 +19,7 @@ class Heavy extends IntraCommand {
     this.elapsedRounds = 0;
     this.completed = false;
     this.type = this.config.type;
-    user.emit(enums.NEW_HEAVY, target);
+    user.emit(heavyEmits.NEW_HEAVY, target);
   }
 
   isInstanceOf(string) {
@@ -34,7 +34,7 @@ class Heavy extends IntraCommand {
 
   switch(type, target) {
     if (!this.switchable) {
-      this.user.emit(enums.HEAVY_COMMIT_ERROR, type);
+      this.user.emit(heavyEmits.HEAVY_COMMIT_ERROR, type);
       return;
     }
     this.user.emit("commitSwitch", type, target);
@@ -52,12 +52,12 @@ class Heavy extends IntraCommand {
   }
 
   mitigate(factor, source) {
-    this.user.emit(enums.HEAVY_MITIGATION, source);
+    this.user.emit(heavyEmits.HEAVY_MITIGATION, source);
     this.mitigated.mult = factor;
   }
 
   avoided(source) {
-    this.user.emit(enums.HEAVY_AVOIDED, source);
+    this.user.emit(heavyEmits.HEAVY_AVOIDED, source);
     this.mitigated.avoided = true;
   }
 

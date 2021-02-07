@@ -22,8 +22,9 @@ const generatePlayer = () => {
   clonedPlayer.hasAttribute = () => true;
   clonedPlayer.getMaxAttribute = () => 10;
   clonedPlayer.getAttribute = () => 10;
-  clonedPlayer.equipment = {};
-  clonedPlayer.equipment.get = () => {};
+  clonedPlayer.equipment.get = (arg) => {
+    return clonedPlayer.equipment[arg];
+  };
   clonedPlayer.evaluateOutgoingDamage = () => {};
   clonedPlayer.evaluateIncomingDamage = () => {};
   clonedPlayer.lowerAttribute = () => {};

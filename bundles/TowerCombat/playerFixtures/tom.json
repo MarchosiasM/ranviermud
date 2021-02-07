@@ -33,13 +33,12 @@
       "base": 100
     }
   },
-  "combatData": {
-    
-  },
+  "combatData": {},
   "level": 2,
   "name": "Tom",
   "room": "limbo:training1",
-  "effects": [{
+  "effects": [
+    {
       "config": {
         "autoActivate": true,
         "description": "You are regenerating over time.",
@@ -133,10 +132,7 @@
             }
           },
           "description": "Nothing special.",
-          "keywords": [
-            "potion",
-            "health"
-          ],
+          "keywords": ["potion", "health"],
           "name": "Potion of Health I",
           "roomDesc": "Potion of Health I",
           "closed": false,
@@ -166,10 +162,7 @@
             }
           },
           "description": "Nothing special.",
-          "keywords": [
-            "potion",
-            "strength"
-          ],
+          "keywords": ["potion", "strength"],
           "name": "Potion of Strength I",
           "roomDesc": "Potion of Strength I",
           "closed": false,
@@ -232,10 +225,7 @@
         }
       },
       "description": "A plain leather vest. Better than nothing.",
-      "keywords": [
-        "leather",
-        "vest"
-      ],
+      "keywords": ["leather", "vest"],
       "name": "Leather Vest",
       "roomDesc": "Leather Vest",
       "closed": false,
@@ -258,12 +248,7 @@
         }
       },
       "description": "An arm's-length, jagged metal sword discolored with red corrosion. The worn leather grip barely held on by fraying thread.",
-      "keywords": [
-        "sword",
-        "rusty",
-        "metal",
-        "rusted"
-      ],
+      "keywords": ["sword", "rusty", "metal", "rusted"],
       "name": "Rusty Sword",
       "roomDesc": "Rusted Sword",
       "closed": false,

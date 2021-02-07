@@ -1,12 +1,14 @@
-const Light = require("../Light");
-const Guard = require("../Guard");
-const Parry = require("../Parry");
-const Dodge = require("../Dodge");
+const Light = require("../index");
+const Guard = require("../../Guard");
+const Parry = require("../../Parry");
+const Dodge = require("../../Dodge");
 const {
   generatePlayer,
   advanceRound,
   generateCombatAndAdvance,
-} = require("../../__tests__/helperFns");
+} = require("../../../__tests__/helperFns");
+const { lightEmits } = require("../light.enum");
+const { commandTypes } = require("../../commands.enum");
 
 describe("Light", () => {
   let tomas, bob, lightInstance, bobsGuardInstance;
@@ -17,8 +19,8 @@ describe("Light", () => {
     lightInstance = new Light(tomas, bob);
     bobsGuardInstance = new Guard(bob, tomas);
   });
-  it("triggers the newLight event when instantiated", () => {
-    expect(tomas.emit).toHaveBeenCalledWith("newLight", bob);
+  it("triggers the NEW_LIGHT event when instantiated", () => {
+    expect(tomas.emit).toHaveBeenCalledWith(lightEmits.NEW_LIGHT, bob);
   });
 
   it("is recognized as an instance of itself", () => {
@@ -32,8 +34,8 @@ describe("Light", () => {
       "does not allow a switch if only %p rounds have elapsed",
       (roundsToElapse) => {
         expect(tomas.emit).not.toHaveBeenCalledWith(
-          "lightCommitError",
-          "light strike"
+          lightEmits.LIGHT_COMMIT_ERROR,
+          commandTypes.LIGHT
         );
 
         for (let i = 0; i < roundsToElapse; i++) {
@@ -41,16 +43,16 @@ describe("Light", () => {
           expect(lightInstance.elapsedRounds).toBe(i + 1);
         }
 
-        lightInstance.switch("light strike", bob);
+        lightInstance.switch(commandTypes.LIGHT, bob);
         expect(tomas.emit).not.toHaveBeenCalledWith(
           "commitSwitch",
-          "light strike",
+          commandTypes.LIGHT,
           bob
         );
 
         expect(tomas.emit).toHaveBeenCalledWith(
-          "lightCommitError",
-          "light strike"
+          lightEmits.LIGHT_COMMIT_ERROR,
+          commandTypes.LIGHT
         );
       }
     );
@@ -64,7 +66,10 @@ describe("Light", () => {
       continueAdvance();
       lightInstance.switch("dodge", bob);
       expect(tomas.emit).toHaveBeenCalledWith("commitSwitch", "dodge", bob);
-      expect(tomas.emit).not.toHaveBeenCalledWith("lightCommitError", "dodge");
+      expect(tomas.emit).not.toHaveBeenCalledWith(
+        lightEmits.LIGHT_COMMIT_ERROR,
+        "dodge"
+      );
     });
   });
   describe("compareAndApply", () => {

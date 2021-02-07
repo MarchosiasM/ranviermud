@@ -7,7 +7,7 @@ const LevelUtil = require("../bundle-example-lib/lib/LevelUtil");
 const WebsocketStream = require("../websocket-networking/lib/WebsocketStream");
 const communication = require("./listeners/communication");
 const commands = require("./listeners/commands");
-const perception = require("./listeners/perception");
+const perception = require("./lib/Perception/perceptionComms");
 /**
  * Auto combat module
  */

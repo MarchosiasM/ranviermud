@@ -1,19 +1,18 @@
-const { Broadcast: B, Logger } = require("ranvier");
-const {
-  commandTypes,
-} = require("../../lib/intraRoundCommitments/commands.enum");
+const { Broadcast: B } = require("ranvier");
+const { commandTypes } = require("../commands.enum");
+const { lightEmits } = require("./light.enum");
 
 module.exports = {
-  lightCommitError: (state) =>
+  [lightEmits.LIGHT_COMMIT_ERROR]: (state) =>
     function (target) {
       B.sayAt(this, `Your weapon is already mid-swing!`);
       // TODO: create advantage eff and insert it on user here
     },
-  newLight: (state) =>
+  [lightEmits.NEW_LIGHT]: (state) =>
     function (target) {
       B.sayAt(this, `You begin a quick strike!`);
     },
-  lightMitigation: (state) =>
+  [lightEmits.LIGHT_MITIGATION]: (state) =>
     function (source) {
       switch (source.type) {
         case commandTypes.PARRY:
@@ -27,7 +26,7 @@ module.exports = {
           break;
       }
     },
-  lightAvoided: (state) =>
+  [lightEmits.LIGHT_AVOIDED]: (state) =>
     function (source) {
       switch (source.type) {
         case commandTypes.DODGE:

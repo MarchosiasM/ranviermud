@@ -8,7 +8,8 @@ const Heavy = require("../lib/intraRoundCommitments/Heavy");
 const guardComms = require("./commandSpecific/guardComms");
 const probeComms = require("./commandSpecific/probeComms");
 const dodgeComms = require("./commandSpecific/dodgeComms");
-const lightComms = require("./commandSpecific/lightComms");
+const lightComms = require("../lib/intraRoundCommitments/Light/lightComms");
+const heavyComms = require("../lib/intraRoundCommitments/Heavy/heavyComms");
 const parryComms = require("./commandSpecific/parryComms");
 const { commandTypes } = require("../lib/intraRoundCommitments/commands.enum");
 
@@ -18,6 +19,7 @@ module.exports = {
   ...dodgeComms,
   ...lightComms,
   ...parryComms,
+  ...heavyComms,
   attemptSwitch: (state) =>
     function (type, target) {
       if (!target) Logger.error(`No target found for type ${type}`);

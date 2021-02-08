@@ -197,6 +197,7 @@ describe("Heavy", () => {
       );
     });
     it("returns the correct string in a partial success scenario", () => {
+      const perceptionMap = heavyInstance.perceptMap;
       const bobsParryInstance = new Parry(bob, tomas);
       expect(heavyInstance.percept(perceptionEnums.PARTIAL_SUCCESS)).toContain(
         "takes an aggressive stance"
@@ -206,15 +207,15 @@ describe("Heavy", () => {
         bobsParryInstance,
       ]);
       expect(heavyInstance.percept(perceptionEnums.PARTIAL_SUCCESS)).toContain(
-        "takes an aggressive stance"
+        perceptionMap[perceptionEnums.PARTIAL_SUCCESS]({ name: tomas.name })
       );
       continueAdvance();
       expect(heavyInstance.percept(perceptionEnums.PARTIAL_SUCCESS)).toContain(
-        "takes an aggressive stance"
+        perceptionMap[perceptionEnums.PARTIAL_SUCCESS]({ name: tomas.name })
       );
       continueAdvance();
       expect(heavyInstance.percept(perceptionEnums.PARTIAL_SUCCESS)).toContain(
-        "takes an aggressive stance"
+        perceptionMap[perceptionEnums.PARTIAL_SUCCESS]({ name: tomas.name })
       );
     });
   });

@@ -1,6 +1,7 @@
 const { perceptionTypes } = require("../commands.enum");
 const { Player } = require("ranvier");
 const { Damage } = require("ranvier");
+const perceptionEnums = require("../../Perception/percept.enum");
 
 class IntraCommand {
   constructor(user, target) {
@@ -108,6 +109,17 @@ class IntraCommand {
 
   setReady() {
     this.elapsedRounds === this.config.castTime;
+  }
+
+  percept(outcome) {
+    if (perceptionEnums.SUCCESS === outcome) {
+      return this.perceptMap[perceptionEnums.SUCCESS][this.elapsedRounds]({
+        name: this.user.name,
+      });
+    }
+    return this.perceptMap[perceptionEnums.PARTIAL_SUCCESS]({
+      name: this.user.name,
+    });
   }
 }
 

@@ -2,23 +2,12 @@
 
 const IntraCommand = require("../IntraCommand");
 const { light } = require("../configuration");
-const { lightEmits } = require("./light.enum");
-const perceptionEnums = require("../../Perception/percept.enum");
-
-const perceptionMap = {
-  [perceptionEnums.SUCCESS]: {
-    0: ({ name }) => `${name} prepares a swift attack.`,
-    1: ({ name }) => `${name} begins to strike swiftly.`,
-    2: ({ name }) => `${name} is in the middle of a swift attack!`,
-    3: ({ name }) => `${name} is executing a swift attack!`,
-  },
-  [perceptionEnums.PARTIAL_SUCCESS]: ({ name }) =>
-    `${name} takes an aggressive stance!`,
-};
+const { lightEmits, perceptionMap } = require("./light.enum");
 
 class Light extends IntraCommand {
   constructor(user, target) {
     super(user, target);
+    this.perceptMap = perceptionMap;
     this.user = user;
     this.target = target;
     this.ready = false;
@@ -79,30 +68,6 @@ class Light extends IntraCommand {
     // debug command for testing
     this.elapsedRounds = this.config.castTime;
     this.ready = true;
-  }
-
-  percept(outcome) {
-    if (perceptionEnums.SUCCESS === outcome) {
-      switch (this.elapsedRounds) {
-        case 0:
-          return perceptionMap[outcome][this.elapsedRounds]({
-            name: this.user.name,
-          });
-        case 1:
-          return perceptionMap[outcome][this.elapsedRounds]({
-            name: this.user.name,
-          });
-        case 2:
-          return perceptionMap[outcome][this.elapsedRounds]({
-            name: this.user.name,
-          });
-        case 3:
-          return perceptionMap[outcome][this.elapsedRounds]({
-            name: this.user.name,
-          });
-      }
-    }
-    return perceptionMap[outcome]({ name: this.user.name });
   }
 }
 

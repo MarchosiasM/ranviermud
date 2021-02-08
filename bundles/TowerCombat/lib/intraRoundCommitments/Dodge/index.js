@@ -1,20 +1,21 @@
 "use strict";
 
-const IntraCommand = require("./IntraCommand");
-const config = require("./configuration");
-const { commandTypes, damageTypes, layers } = require("./commands.enum");
-
+const IntraCommand = require("../IntraCommand");
+const config = require("../configuration");
+const { commandTypes, damageTypes, layers } = require("../commands.enum");
 const { dodge } = config;
+const { dodgeEmit, perceptionMap } = require("./Dodge.enum");
 
 class Dodge extends IntraCommand {
   constructor(user, target) {
     super(user, target);
+    this.perceptMap = perceptionMap;
     this.user = user;
     this.target = target;
     this.elapsedRounds = 0;
     this.readyToDodge = false;
     this.type = this.config.type;
-    user.emit("newDodge", target);
+    user.emit(dodgeEmit.NEW_DODGE, target);
     this.signature = {
       user: user,
       type: dodge.type,
@@ -24,7 +25,7 @@ class Dodge extends IntraCommand {
 
   update() {
     if (this.elapsedRounds > 1 && !this.readyToDodge) {
-      this.user.emit("dodgeInvulnBegin");
+      this.user.emit(dodgeEmit.DODGE_INVULN_BEGIN);
       this.readyToDodge = true;
     }
   }
@@ -38,7 +39,7 @@ class Dodge extends IntraCommand {
 
   switch(type, target) {
     if (!this.switchable) {
-      this.user.emit("dodgeCommitError", type);
+      this.user.emit(dodgeEmit.DODGE_COMMIT_ERROR, type);
       return;
     }
     this.user.emit("commitSwitch", type, target);
@@ -52,10 +53,10 @@ class Dodge extends IntraCommand {
   handleDodgeMessaging(type, attacker) {
     switch (type) {
       case commandTypes.LIGHT:
-        this.user.emit("lightDodge", attacker);
+        this.user.emit(dodgeEmit.LIGHT_DODGE, attacker);
         break;
       case commandTypes.HEAVY:
-        this.user.emit("heavyDodge", attacker);
+        this.user.emit(dodgeEmit.HEAVY_DODGE, attacker);
         break;
     }
   }

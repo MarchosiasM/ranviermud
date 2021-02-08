@@ -1,12 +1,14 @@
-const Guard = require("../Guard");
-const Light = require("../Light");
-const Heavy = require("../Heavy");
-const Dodge = require("../Dodge");
+const Guard = require("../../Guard");
+const Light = require("../../Light");
+const Heavy = require("../../Heavy");
+const Dodge = require("../index");
 const {
   generatePlayer,
   advanceRound,
   generateCombatAndAdvance,
-} = require("../../__tests__/helperFns");
+} = require("../../../__tests__/helperFns");
+const { dodgeEmit } = require("../Dodge.enum");
+const perceptionEnums = require("../../../Perception/percept.enum");
 
 describe("Dodge", () => {
   let tomas, bob, dodgeInstance, bobsGuardInstance;
@@ -17,7 +19,7 @@ describe("Dodge", () => {
     bobsGuardInstance = new Guard(bob, tomas);
   });
   it("triggers the newGuard event when instantiated", () => {
-    expect(tomas.emit).toHaveBeenCalledWith("newDodge", bob);
+    expect(tomas.emit).toHaveBeenCalledWith(dodgeEmit.NEW_DODGE, bob);
   });
 
   it("is recognized as an instance of itself", () => {
@@ -31,7 +33,7 @@ describe("Dodge", () => {
       "does not allow a switch if only %p rounds have elapsed",
       (roundsToElapse) => {
         expect(tomas.emit).not.toHaveBeenCalledWith(
-          "dodgeCommitError",
+          dodgeEmit.DODGE_COMMIT_ERROR,
           "light strike"
         );
         for (let i = 0; i < roundsToElapse; i++) {
@@ -45,7 +47,7 @@ describe("Dodge", () => {
           bob
         );
         expect(tomas.emit).toHaveBeenCalledWith(
-          "dodgeCommitError",
+          dodgeEmit.DODGE_COMMIT_ERROR,
           "light strike"
         );
       }
@@ -65,7 +67,7 @@ describe("Dodge", () => {
         bob
       );
       expect(tomas.emit).not.toHaveBeenCalledWith(
-        "dodgeCommitError",
+        dodgeEmit.DODGE_COMMIT_ERROR,
         "light strike"
       );
     });
@@ -83,21 +85,21 @@ describe("Dodge", () => {
       continueAdvance();
       expect(dodgeInstance.elapsedRounds).toEqual(2);
     });
-    it("at the end of the 2nd round, player enters invulnerability", () => {
+    it("in the third round, player is invulnerable", () => {
       const continueAdvance = generateCombatAndAdvance([
         dodgeInstance,
         bobsGuardInstance,
       ]);
       continueAdvance();
-      expect(tomas.emit).not.toHaveBeenCalledWith("dodgeInvulnBegin");
+      expect(tomas.emit).not.toHaveBeenCalledWith(dodgeEmit.DODGE_INVULN_BEGIN);
       continueAdvance();
-      expect(tomas.emit).toHaveBeenCalledWith("dodgeInvulnBegin");
+      expect(tomas.emit).toHaveBeenCalledWith(dodgeEmit.DODGE_INVULN_BEGIN);
     });
     it("does not emit an event to mitigate heavy damage if two rounds haven't elapsed", () => {
       advanceRound(dodgeInstance, new Heavy(bob, tomas));
       advanceRound(dodgeInstance, new Light(bob, tomas));
-      expect(tomas.emit).not.toHaveBeenCalledWith("heavyDodge", bob);
-      expect(tomas.emit).not.toHaveBeenCalledWith("lightDodge", bob);
+      expect(tomas.emit).not.toHaveBeenCalledWith(dodgeEmit.HEAVY_DODGE, bob);
+      expect(tomas.emit).not.toHaveBeenCalledWith(dodgeEmit.LIGHT_DODGE, bob);
     });
     it("does emit an event to mitigate heavy damage if two rounds have elapsed", () => {
       const bobsHeavy = new Heavy(bob, tomas);
@@ -106,17 +108,63 @@ describe("Dodge", () => {
       advanceRound(dodgeInstance, bobsGuardInstance);
 
       advanceRound(dodgeInstance, bobsHeavy);
-      expect(tomas.emit).toHaveBeenCalledWith("heavyDodge", bob);
+      expect(tomas.emit).toHaveBeenCalledWith(dodgeEmit.HEAVY_DODGE, bob);
     });
     it("does emit an event to mitigate light damage if light and dodge are ready", () => {
       const bobsLightInstance = new Light(bob, tomas);
 
       for (let i = 0; i < dodgeInstance.config.castTime; i++) {
-        expect(tomas.emit).not.toHaveBeenCalledWith("lightDodge", bob);
+        expect(tomas.emit).not.toHaveBeenCalledWith(dodgeEmit.LIGHT_DODGE, bob);
         advanceRound(dodgeInstance, bobsLightInstance);
       }
-      expect(tomas.emit).toHaveBeenCalledWith("lightDodge", bob);
+      expect(tomas.emit).toHaveBeenCalledWith(dodgeEmit.LIGHT_DODGE, bob);
     });
     it.todo("activates the mitigation method on the incoming damage obj");
+  });
+  describe("perception", () => {
+    it("returns correct string in a success scenario", () => {
+      const perceptionMap = dodgeInstance.perceptMap;
+      const bobsParryInstance = new Light(bob, tomas);
+      expect(dodgeInstance.percept(perceptionEnums.SUCCESS)).toContain(
+        perceptionMap[perceptionEnums.SUCCESS][0]({ name: tomas.name })
+      );
+      const continueAdvance = generateCombatAndAdvance([
+        dodgeInstance,
+        bobsParryInstance,
+      ]);
+      expect(dodgeInstance.percept(perceptionEnums.SUCCESS)).toContain(
+        perceptionMap[perceptionEnums.SUCCESS][1]({ name: tomas.name })
+      );
+      continueAdvance();
+      expect(dodgeInstance.percept(perceptionEnums.SUCCESS)).toContain(
+        perceptionMap[perceptionEnums.SUCCESS][2]({ name: tomas.name })
+      );
+      continueAdvance();
+      expect(dodgeInstance.percept(perceptionEnums.SUCCESS)).toContain(
+        perceptionMap[perceptionEnums.SUCCESS][3]({ name: tomas.name })
+      );
+    });
+    it("returns the correct string in a partial success scenario", () => {
+      const perceptionMap = dodgeInstance.perceptMap;
+      const bobsParryInstance = new Light(bob, tomas);
+      expect(dodgeInstance.percept(perceptionEnums.PARTIAL_SUCCESS)).toContain(
+        "takes an aggressive stance"
+      );
+      const continueAdvance = generateCombatAndAdvance([
+        dodgeInstance,
+        bobsParryInstance,
+      ]);
+      expect(dodgeInstance.percept(perceptionEnums.PARTIAL_SUCCESS)).toContain(
+        perceptionMap[perceptionEnums.PARTIAL_SUCCESS]({ name: tomas.name })
+      );
+      continueAdvance();
+      expect(dodgeInstance.percept(perceptionEnums.PARTIAL_SUCCESS)).toContain(
+        perceptionMap[perceptionEnums.PARTIAL_SUCCESS]({ name: tomas.name })
+      );
+      continueAdvance();
+      expect(dodgeInstance.percept(perceptionEnums.PARTIAL_SUCCESS)).toContain(
+        perceptionMap[perceptionEnums.PARTIAL_SUCCESS]({ name: tomas.name })
+      );
+    });
   });
 });

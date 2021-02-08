@@ -4,6 +4,8 @@ const {
   generatePlayer,
   generateCombatAndAdvance,
 } = require("../../../__tests__/helperFns");
+const perceptionEnums = require("../../../Perception/percept.enum");
+const { probeEmits } = require("../probe.enum");
 
 describe("Probe", () => {
   let tomas, bob, probeInstance, bobsLightInstance;
@@ -14,7 +16,7 @@ describe("Probe", () => {
     bobsLightInstance = new Light(bob, tomas);
   });
   it("triggers the newProbe event when instantiated", () => {
-    expect(tomas.emit).toHaveBeenCalledWith("newProbe", bob);
+    expect(tomas.emit).toHaveBeenCalledWith(probeEmits.NEW_PROBE, bob);
   });
 
   it("is recognized as an instance of itself", () => {
@@ -64,6 +66,39 @@ describe("Probe", () => {
     for (let i = 0; i < 40; i++) {
       probeInstance.rollAdvantageChance();
     }
-    expect(tomas.emit).toHaveBeenCalledWith("probeGainAdvantage");
+    expect(tomas.emit).toHaveBeenCalledWith(probeEmits.GAIN_ADVANTAGE);
+  });
+  describe("perception", () => {
+    it("returns correct string in a success scenario", () => {
+      const perceptionMap = probeInstance.perceptMap;
+      const bobsLightInstance = new Light(bob, tomas);
+      expect(probeInstance.percept(perceptionEnums.SUCCESS)).toContain(
+        perceptionMap[perceptionEnums.SUCCESS]({ name: tomas.name })
+      );
+      const continueAdvance = generateCombatAndAdvance([
+        probeInstance,
+        bobsLightInstance,
+      ]);
+      expect(probeInstance.percept(perceptionEnums.SUCCESS)).toContain(
+        perceptionMap[perceptionEnums.SUCCESS]({ name: tomas.name })
+      );
+      continueAdvance();
+      expect(probeInstance.percept(perceptionEnums.SUCCESS)).toContain(
+        perceptionMap[perceptionEnums.SUCCESS]({ name: tomas.name })
+      );
+      continueAdvance();
+      expect(probeInstance.percept(perceptionEnums.SUCCESS)).toContain(
+        perceptionMap[perceptionEnums.SUCCESS]({ name: tomas.name })
+      );
+      continueAdvance();
+      expect(probeInstance.percept(perceptionEnums.SUCCESS)).toContain(
+        perceptionMap[perceptionEnums.SUCCESS]({ name: tomas.name })
+      );
+    });
+    it("returns the correct string in a partial success scenario", () => {
+      expect(
+        typeof probeInstance.percept(perceptionEnums.PARTIAL_SUCCESS)
+      ).toBe("string");
+    });
   });
 });

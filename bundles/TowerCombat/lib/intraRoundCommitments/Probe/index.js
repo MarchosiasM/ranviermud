@@ -3,20 +3,17 @@
 const IntraCommand = require("../IntraCommand");
 const { probe } = require("../configuration");
 const { Random } = require("rando-js");
-
-const bonusFollowUps = {
-  LIGHT: "LIGHT",
-  HEAVY: "HEAVY",
-  PARRY: "PARRY",
-};
+const perceptionEnums = require("../../Perception/percept.enum");
+const { probeEmits, bonusFollowUps, perceptionMap } = require("./probe.enum");
 
 class Probe extends IntraCommand {
   constructor(user, target) {
     super(user, target);
+    this.perceptMap = perceptionMap;
     this.user = user;
     this.target = target;
     this.elapsedRounds = 0;
-    user.emit("newProbe", target);
+    user.emit(probeEmits.NEW_PROBE, target);
   }
 
   isInstanceOf(string) {
@@ -43,7 +40,7 @@ class Probe extends IntraCommand {
 
   rollAdvantageChance() {
     if (Random.inRange(0, 10) === 10) {
-      this.user.emit("probeGainAdvantage");
+      this.user.emit(probeEmits.GAIN_ADVANTAGE);
     }
   }
 
@@ -55,6 +52,17 @@ class Probe extends IntraCommand {
     return {
       ...probe,
     };
+  }
+
+  percept(outcome) {
+    if (perceptionEnums.SUCCESS === outcome) {
+      return this.perceptMap[perceptionEnums.SUCCESS]({
+        name: this.user.name,
+      });
+    }
+    return this.perceptMap[perceptionEnums.PARTIAL_SUCCESS]({
+      name: this.user.name,
+    });
   }
 }
 

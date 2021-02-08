@@ -1,8 +1,9 @@
 "use strict";
 
-const IntraCommand = require("./IntraCommand");
-const { guard } = require("./configuration");
-const { commandTypes, damageTypes } = require("./commands.enum");
+const IntraCommand = require("../IntraCommand");
+const { guard } = require("../configuration");
+const { commandTypes, damageTypes } = require("../commands.enum");
+const { guardEmits } = require("./Guard.enum");
 
 class Guard extends IntraCommand {
   constructor(user, target) {
@@ -11,7 +12,7 @@ class Guard extends IntraCommand {
     this.target = target;
     this.elapsedRounds = 0;
     this.type = guard.type;
-    user.emit("newGuard", target);
+    user.emit(guardEmits.NEW_GUARD, target);
   }
 
   update() {}
@@ -28,11 +29,10 @@ class Guard extends IntraCommand {
 
       switch (incomingAction.config.type) {
         case commandTypes.LIGHT:
-          this.user.emit("guardLightMitigate");
-
+          this.user.emit(guardEmits.GUARD_MITIGATE_LIGHT);
           break;
         case commandTypes.HEAVY:
-          this.user.emit("guardHeavyMitigate");
+          this.user.emit(guardEmits.GUARD_MITIGATE_HEAVY);
           break;
       }
     }
@@ -41,7 +41,7 @@ class Guard extends IntraCommand {
   switch(type, target) {
     if (this.elapsedRounds >= 1 && type === commandTypes.DODGE) {
       // TODO: Put advantage on player if switching to dodge!
-      this.user.emit("guardDodgeAdvantage");
+      this.user.emit(guardEmits.GUARD_DODGE_ADVANTAGE);
     }
     this.user.emit("commitSwitch", type, target);
   }

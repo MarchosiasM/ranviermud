@@ -63,7 +63,7 @@ describe("Probe", () => {
 
   it("statistically speaking this test will fail now and then, but we should expect this test to mostly pass", () => {
     probeInstance.switch("dodge", bob);
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 100; i++) {
       probeInstance.rollAdvantageChance();
     }
     expect(tomas.emit).toHaveBeenCalledWith(probeEmits.GAIN_ADVANTAGE);

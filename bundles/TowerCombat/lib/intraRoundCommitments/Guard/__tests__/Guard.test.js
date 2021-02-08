@@ -5,6 +5,7 @@ const {
   generatePlayer,
   generateCombatAndAdvance,
 } = require("../../../__tests__/helperFns");
+const perceptionEnums = require("../../../Perception/percept.enum");
 const { guardEmits } = require("../Guard.enum");
 
 describe("Guard", () => {
@@ -76,13 +77,11 @@ describe("Guard", () => {
         guardInstance,
         bobsGuardInstance,
       ]);
-      expect(guardInstance.elapsedRounds).toEqual(1);
-
-      continueAdvance(guardInstance, bobsGuardInstance);
-      expect(guardInstance.elapsedRounds).toEqual(2);
+      continueAdvance();
       expect(tomasEmit).not.toHaveBeenCalledWith(
         guardEmits.GUARD_MITIGATE_LIGHT
       );
+      continueAdvance();
       expect(tomasEmit).not.toHaveBeenCalledWith(
         guardEmits.GUARD_MITIGATE_HEAVY
       );
@@ -98,10 +97,69 @@ describe("Guard", () => {
 
       expect(tomasEmit).toHaveBeenCalledWith(guardEmits.GUARD_MITIGATE_LIGHT);
     });
-    xit("emits an event to mitigate heavy damage", () => {
-      guardInstance.resolve(new Heavy(bob, tomas));
-      expect(guardInstance.elapsedRounds).toEqual(1);
+    it("emits an event to mitigate heavy damage", () => {
+      const bobsHeavyInstance = new Heavy(bob, tomas);
+      expect(tomasEmit).not.toHaveBeenCalledWith(
+        guardEmits.GUARD_MITIGATE_HEAVY
+      );
+      const continueAdvance = generateCombatAndAdvance([
+        guardInstance,
+        bobsHeavyInstance,
+      ]);
+      expect(tomasEmit).not.toHaveBeenCalledWith(
+        guardEmits.GUARD_MITIGATE_HEAVY
+      );
+      continueAdvance(); // 1-2
+      expect(tomasEmit).not.toHaveBeenCalledWith(
+        guardEmits.GUARD_MITIGATE_HEAVY
+      );
+      continueAdvance();
+      expect(tomasEmit).not.toHaveBeenCalledWith(
+        guardEmits.GUARD_MITIGATE_HEAVY
+      );
+      continueAdvance();
+      expect(tomasEmit).not.toHaveBeenCalledWith(
+        guardEmits.GUARD_MITIGATE_HEAVY
+      );
+      continueAdvance();
+      expect(tomasEmit).not.toHaveBeenCalledWith(
+        guardEmits.GUARD_MITIGATE_HEAVY
+      );
+      continueAdvance();
       expect(tomasEmit).toHaveBeenCalledWith(guardEmits.GUARD_MITIGATE_HEAVY);
+    });
+  });
+  describe("perception", () => {
+    it("returns correct string in a success scenario", () => {
+      const perceptionMap = guardInstance.perceptMap;
+      const bobsLightInstance = new Light(bob, tomas);
+      expect(guardInstance.percept(perceptionEnums.SUCCESS)).toContain(
+        perceptionMap[perceptionEnums.SUCCESS]({ name: tomas.name })
+      );
+      const continueAdvance = generateCombatAndAdvance([
+        guardInstance,
+        bobsLightInstance,
+      ]);
+      expect(guardInstance.percept(perceptionEnums.SUCCESS)).toContain(
+        perceptionMap[perceptionEnums.SUCCESS]({ name: tomas.name })
+      );
+      continueAdvance();
+      expect(guardInstance.percept(perceptionEnums.SUCCESS)).toContain(
+        perceptionMap[perceptionEnums.SUCCESS]({ name: tomas.name })
+      );
+      continueAdvance();
+      expect(guardInstance.percept(perceptionEnums.SUCCESS)).toContain(
+        perceptionMap[perceptionEnums.SUCCESS]({ name: tomas.name })
+      );
+      continueAdvance();
+      expect(guardInstance.percept(perceptionEnums.SUCCESS)).toContain(
+        perceptionMap[perceptionEnums.SUCCESS]({ name: tomas.name })
+      );
+    });
+    it("returns the correct string in a partial success scenario", () => {
+      expect(
+        typeof guardInstance.percept(perceptionEnums.PARTIAL_SUCCESS)
+      ).toBe("string");
     });
   });
 });

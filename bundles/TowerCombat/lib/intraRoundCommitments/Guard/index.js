@@ -3,11 +3,13 @@
 const IntraCommand = require("../IntraCommand");
 const { guard } = require("../configuration");
 const { commandTypes, damageTypes } = require("../commands.enum");
-const { guardEmits } = require("./Guard.enum");
+const { guardEmits, perceptionMap } = require("./Guard.enum");
+const perceptionEnums = require("../../Perception/percept.enum");
 
 class Guard extends IntraCommand {
   constructor(user, target) {
     super(user, target);
+    this.perceptMap = perceptionMap;
     this.user = user;
     this.target = target;
     this.elapsedRounds = 0;
@@ -63,6 +65,17 @@ class Guard extends IntraCommand {
       incomingAction.damageType === damageTypes.PHYSICAL &&
       incomingAction.target === this.user
     );
+  }
+
+  percept(outcome) {
+    if (perceptionEnums.SUCCESS === outcome) {
+      return this.perceptMap[perceptionEnums.SUCCESS]({
+        name: this.user.name,
+      });
+    }
+    return this.perceptMap[perceptionEnums.PARTIAL_SUCCESS]({
+      name: this.user.name,
+    });
   }
 }
 

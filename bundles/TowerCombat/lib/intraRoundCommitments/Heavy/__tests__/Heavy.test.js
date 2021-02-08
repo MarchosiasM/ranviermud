@@ -9,6 +9,7 @@ const {
   advanceRound,
   generateCombatAndAdvance,
 } = require("../../../__tests__/helperFns");
+const perceptionEnums = require("../../../Perception/percept.enum");
 
 describe("Heavy", () => {
   let tomas, bob, heavyInstance, bobsGuardInstance;
@@ -162,6 +163,59 @@ describe("Heavy", () => {
 
       advanceRound();
       expect(heavyInstance.mitigated.mult).toBe(bobsMitigation);
+    });
+  });
+  describe("perception", () => {
+    it("returns correct string in a success scenario", () => {
+      const perceptionMap = heavyInstance.perceptMap;
+      const bobsParryInstance = new Parry(bob, tomas);
+      expect(heavyInstance.percept(perceptionEnums.SUCCESS)).toContain(
+        perceptionMap[perceptionEnums.SUCCESS][0]({ name: tomas.name })
+      );
+      const continueAdvance = generateCombatAndAdvance([
+        heavyInstance,
+        bobsParryInstance,
+      ]);
+      expect(heavyInstance.percept(perceptionEnums.SUCCESS)).toContain(
+        perceptionMap[perceptionEnums.SUCCESS][1]({ name: tomas.name })
+      );
+      continueAdvance();
+      expect(heavyInstance.percept(perceptionEnums.SUCCESS)).toContain(
+        perceptionMap[perceptionEnums.SUCCESS][2]({ name: tomas.name })
+      );
+      continueAdvance();
+      expect(heavyInstance.percept(perceptionEnums.SUCCESS)).toContain(
+        perceptionMap[perceptionEnums.SUCCESS][3]({ name: tomas.name })
+      );
+      continueAdvance();
+      expect(heavyInstance.percept(perceptionEnums.SUCCESS)).toContain(
+        perceptionMap[perceptionEnums.SUCCESS][4]({ name: tomas.name })
+      );
+      continueAdvance();
+      expect(heavyInstance.percept(perceptionEnums.SUCCESS)).toContain(
+        perceptionMap[perceptionEnums.SUCCESS][5]({ name: tomas.name })
+      );
+    });
+    it("returns the correct string in a partial success scenario", () => {
+      const bobsParryInstance = new Parry(bob, tomas);
+      expect(heavyInstance.percept(perceptionEnums.PARTIAL_SUCCESS)).toContain(
+        "takes an aggressive stance"
+      );
+      const continueAdvance = generateCombatAndAdvance([
+        heavyInstance,
+        bobsParryInstance,
+      ]);
+      expect(heavyInstance.percept(perceptionEnums.PARTIAL_SUCCESS)).toContain(
+        "takes an aggressive stance"
+      );
+      continueAdvance();
+      expect(heavyInstance.percept(perceptionEnums.PARTIAL_SUCCESS)).toContain(
+        "takes an aggressive stance"
+      );
+      continueAdvance();
+      expect(heavyInstance.percept(perceptionEnums.PARTIAL_SUCCESS)).toContain(
+        "takes an aggressive stance"
+      );
     });
   });
 });

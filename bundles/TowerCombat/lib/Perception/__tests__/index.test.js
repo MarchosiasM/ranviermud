@@ -1,4 +1,3 @@
-// const Perception = require('../index')
 const Engagement = require("../../Engagement");
 const Guard = require("../../intraRoundCommitments/Guard");
 const Perception = require("../index");

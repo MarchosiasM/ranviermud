@@ -3,7 +3,6 @@
 const IntraCommand = require("./IntraCommand");
 const { guard } = require("./configuration");
 const { commandTypes, damageTypes } = require("./commands.enum");
-const _ = require("lodash");
 
 class Guard extends IntraCommand {
   constructor(user, target) {

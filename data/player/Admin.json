@@ -35,7 +35,7 @@
   },
   "level": 4,
   "name": "Admin",
-  "room": "limbo:training1",
+  "room": "limbo:training4",
   "effects": [
     {
       "config": {
@@ -51,13 +51,13 @@
         "type": "regen",
         "unique": true
       },
-      "elapsed": 71295778,
+      "elapsed": 71364632,
       "id": "regen",
       "remaining": null,
       "state": {
         "magnitude": 15,
-        "lastTick": 101,
-        "ticks": 799
+        "lastTick": 2802,
+        "ticks": 821
       }
     },
     {
@@ -74,7 +74,7 @@
         "type": "equip.wield",
         "unique": true
       },
-      "elapsed": 71287595,
+      "elapsed": 71356448,
       "id": "equip",
       "remaining": null,
       "state": {
@@ -98,7 +98,7 @@
         "type": "equip.chest",
         "unique": true
       },
-      "elapsed": 71286330,
+      "elapsed": 71355183,
       "id": "equip",
       "remaining": null,
       "state": {
@@ -109,7 +109,7 @@
       }
     }
   ],
-  "experience": 157,
+  "experience": 267,
   "inventory": {
     "items": [
       [

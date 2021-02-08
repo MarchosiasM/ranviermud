@@ -1,12 +1,13 @@
 const { Broadcast: B, Logger } = require("ranvier");
+const { probeEmits } = require("./probe.enum");
 
 module.exports = {
-  probeGainAdvantage: (state) =>
+  [probeEmits.GAIN_ADVANTAGE]: (state) =>
     function (target) {
       B.sayAt(this, `You spot a vital flaw in ${target}'s defenses!`);
       // TODO: create advantage eff and insert it on user here
     },
-  newProbe: (state) =>
+  [probeEmits.NEW_PROBE]: (state) =>
     function (target) {
       B.sayAt(
         this,

@@ -48,11 +48,6 @@ module.exports = {
     perceiveAs: perceptionTypes.DEFENSE,
     perceptMod: 0.8,
     perceptThreshold: 5,
-    parryRoundMap: {
-      1: "partialParry",
-      2: "perfectParry",
-      3: "partialParry",
-    },
     mitigationFactors: {
       [damageTypes.PHYSICAL]: 0.5,
     },

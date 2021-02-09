@@ -10,7 +10,7 @@ const probeComms = require("../lib/intraRoundCommitments/Probe/probeComms");
 const dodgeComms = require("../lib/intraRoundCommitments/Dodge/dodgeComms");
 const lightComms = require("../lib/intraRoundCommitments/Light/lightComms");
 const heavyComms = require("../lib/intraRoundCommitments/Heavy/heavyComms");
-const parryComms = require("./commandSpecific/parryComms");
+const parryComms = require("../lib/intraRoundCommitments/Parry/parryComms");
 const { commandTypes } = require("../lib/intraRoundCommitments/commands.enum");
 
 module.exports = {

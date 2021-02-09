@@ -1,18 +1,27 @@
 const { Broadcast: B, Logger } = require("ranvier");
+const { parryEmits } = require("./Parry.enum");
+
+const {
+  NEW_PARRY,
+  PARRY_PREPARED,
+  PARTIAL_PARRY,
+  PERFECT_PARRY,
+  PARRY_COMMIT,
+} = parryEmits;
 
 module.exports = {
-  newParry: (state) =>
+  [NEW_PARRY]: (state) =>
     function (target) {
       B.sayAt(this, `You'll attempt to deflect their blow.`);
     },
-  parryCommitMessage: (state) =>
+  [PARRY_COMMIT]: (state) =>
     function (target) {
       B.sayAt(
         this,
         `You find yourself unable to pivot into that action from this stance.`
       );
     },
-  parryPreparedMessage: (state) =>
+  [PARRY_PREPARED]: (state) =>
     function (target) {
       B.sayAt(this, `Your weapon is in position to deflect!`);
     },
@@ -20,11 +29,11 @@ module.exports = {
     function (target) {
       B.sayAt(this, `You attempt to deflect ${target}'s attack!`);
     },
-  partialParry: (state) =>
+  [PARTIAL_PARRY]: (state) =>
     function (target) {
       B.sayAt(this, `Though your timing is off, you still deflect the blow.`);
     },
-  perfectParry: (state) =>
+  [PERFECT_PARRY]: (state) =>
     function (target) {
       B.sayAt(
         this,

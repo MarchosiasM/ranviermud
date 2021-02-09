@@ -51,13 +51,13 @@
         "type": "regen",
         "unique": true
       },
-      "elapsed": 71445306,
+      "elapsed": 71483503,
       "id": "regen",
       "remaining": null,
       "state": {
         "magnitude": 15,
-        "lastTick": 2204,
-        "ticks": 848
+        "lastTick": 1303,
+        "ticks": 861
       }
     },
     {
@@ -74,7 +74,7 @@
         "type": "equip.wield",
         "unique": true
       },
-      "elapsed": 71437122,
+      "elapsed": 71475319,
       "id": "equip",
       "remaining": null,
       "state": {
@@ -98,7 +98,7 @@
         "type": "equip.chest",
         "unique": true
       },
-      "elapsed": 71435857,
+      "elapsed": 71474054,
       "id": "equip",
       "remaining": null,
       "state": {
@@ -109,7 +109,7 @@
       }
     }
   ],
-  "experience": 377,
+  "experience": 432,
   "inventory": {
     "items": [
       [

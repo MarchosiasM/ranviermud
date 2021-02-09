@@ -12,25 +12,11 @@ const generalPercepMap = {
   [layers.OFFENSE]: ({ name }) => `${name} is poised to withdraw.`,
 };
 
-const specificPercepMap = {
-  [commandTypes.PROBE]: ({ name, his }) =>
-    `${name} thrusts ${his} weapon forward, searching for an opening.`,
-  [commandTypes.GUARD]: ({ name, his }) =>
-    `${name} has assumed a neutral stance, biding ${his} time.`,
-  [commandTypes.LIGHT]: ({ name }) => `${name} is prepared to strike!`,
-  [commandTypes.HEAVY]: ({ name }) => `${name} is winding up for a huge blow!`,
-  [commandTypes.DODGE]: ({ name, his }) =>
-    `${name} looks light on ${his} feet!`,
-};
-
 module.exports = {
   [perceptEmit.SUCCESS]: (state) =>
     function (decision, opposition) {
       const { config } = decision;
-      if (specificPercepMap[config.type]) {
-        B.sayAt(this, specificPercepMap[config.type](opposition));
-        return;
-      }
+      B.sayAt(this, decision.percept(perceptEmit.SUCCESS));
       Logger.log(
         `Failed a type check, decision type ${config.type}: perceiveAs: ${config.perceiveAs}`
       );
@@ -38,10 +24,7 @@ module.exports = {
   [perceptEmit.PARTIAL_SUCCESS]: (state) =>
     function (decision, opposition) {
       const { config } = decision;
-      if (config && generalPercepMap[config.perceiveAs]) {
-        B.sayAt(this, generalPercepMap[config.perceiveAs](opposition));
-        return;
-      }
+      B.sayAt(this, decision.percept(perceptEmit.SUCCESS));
       Logger.log(
         `Failed a type check, decision type ${config.type}: perceiveAs: ${config.perceiveAs}`
       );
